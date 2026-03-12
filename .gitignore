@@ -1,0 +1,62 @@
+# ─── Python ───────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# ─── Virtual environments ─────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ─── Model weights & cache ────────────────────────
+# Chatterbox / HuggingFace weights are large — don't commit
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+.cache/
+huggingface/
+
+# ─── Generated audio output ───────────────────────
+outputs/*.wav
+outputs/*.mp3
+outputs/*.ogg
+
+# ─── Voice profiles (personal — don't commit) ─────
+profiles/*.wav
+profiles/*.mp3
+
+# ─── Logs ─────────────────────────────────────────
+*.log
+logs/
+
+# ─── OS files ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── VS Code ──────────────────────────────────────
+.vscode/settings.json
+.vscode/launch.json
+.vscode/*.code-workspace
+
+# ─── Env / secrets ────────────────────────────────
+.env
+.env.*
+*.secret
+
+# ─── Temp files ───────────────────────────────────
+tmp/
+temp/
+*.tmp
+*.bak

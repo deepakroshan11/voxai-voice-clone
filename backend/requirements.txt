@@ -1,0 +1,29 @@
+# ─── Web framework ───────────────────────────────
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+
+# ─── Chatterbox TTS (replaces XTTS v2) ───────────
+# MIT licence, free, local, no API key needed
+# ~2 GB model download on first run (cached after that)
+chatterbox-tts
+
+# ─── Audio utilities ─────────────────────────────
+torch>=2.0.0
+torchaudio>=2.0.0
+numpy>=1.24.0
+soundfile>=0.12.1
+scipy>=1.11.0
+
+# ─── NOTES ───────────────────────────────────────
+# Python 3.10 or 3.11 required (Chatterbox requirement)
+#
+# First run will download ~2 GB of model weights from HuggingFace.
+# Make sure you have a good internet connection for the first startup.
+#
+# For WebM/MP3/M4A uploads, ffmpeg must be in PATH:
+#   Windows: https://www.gyan.dev/ffmpeg/builds/
+#   (download, unzip, add bin/ folder to PATH, restart terminal)
+#
+# The frontend (index.html) converts recorded audio to WAV in the
+# browser, so ffmpeg is only needed for uploaded non-WAV files.
