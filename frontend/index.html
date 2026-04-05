@@ -3,36 +3,29 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VOXAI — Voice Cloning Studio</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>VOXAI — Voice Clone Studio</title>
   <link
-    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:ital,wght@0,300;0,400;1,300;1,400&display=swap"
     rel="stylesheet" />
   <style>
     :root {
-      --bg: #080c12;
-      --bg1: #0d1219;
-      --bg2: #111820;
-      --panel: #141b25;
-      --panel2: #1a2232;
-      --line: #1f2d3d;
-      --line2: #263445;
-      --cyan: #00e5c8;
-      --cyan2: #00bfa8;
-      --ca12: rgba(0, 229, 200, .12);
-      --ca20: rgba(0, 229, 200, .20);
-      --ca30: rgba(0, 229, 200, .30);
-      --amber: #ffb020;
-      --red: #ff4b6e;
-      --green: #22d47a;
-      --txt: #d8e4f0;
-      --txt2: #7a93aa;
-      --txt3: #3a5068;
-      --mono: 'DM Mono', monospace;
-      --sans: 'DM Sans', sans-serif;
-      --disp: 'Barlow Condensed', sans-serif;
-      --r: 12px;
-      --g: clamp(10px, 2vw, 16px);
+      --cream: #ede9e0;
+      --cream2: #e4dfd4;
+      --cream3: #d8d2c6;
+      --paper: #f2ede4;
+      --ink: #1a1714;
+      --ink2: #2c2924;
+      --ink3: #3d3a34;
+      --line: #b8b2a6;
+      --line2: #9a9388;
+      --muted: #756e64;
+      --muted2: #504a42;
+      --mono: 'Share Tech Mono', monospace;
+      --vt: 'VT323', monospace;
+      --cond: 'Barlow Condensed', sans-serif;
+      --body: 'Barlow', sans-serif;
+      --red: #cc2200;
     }
 
     *,
@@ -40,110 +33,226 @@
     *::after {
       box-sizing: border-box;
       margin: 0;
-      padding: 0;
+      padding: 0
     }
 
     html {
       scroll-behavior: smooth;
-      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent
     }
 
-    body {
-      font-family: var(--sans);
-      background: var(--bg);
-      color: var(--txt);
-      min-height: 100vh;
-      overflow-x: hidden;
-      font-size: 16px;
+    * {
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpolygon points='0,0 0,13 4,9 7,15 9,14 6,8 11,8' fill='%231a1714' stroke='%23ede9e0' stroke-width='1'/%3E%3C/svg%3E") 0 0, auto
     }
 
-    ::-webkit-scrollbar {
-      width: 3px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--line2);
-      border-radius: 2px;
-    }
-
-    body::before {
-      content: '';
+    /* ════ INTRO SPLASH ════ */
+    #intro {
       position: fixed;
       inset: 0;
-      z-index: 0;
+      z-index: 9999;
+      background: #080604;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-family: var(--mono)
+    }
+
+    #intro.exit {
+      animation: introExit 1.1s cubic-bezier(.77, 0, .18, 1) forwards
+    }
+
+    @keyframes introExit {
+      0% {
+        transform: translateY(0);
+        opacity: 1
+      }
+
+      30% {
+        transform: translateY(-2%);
+        opacity: 1
+      }
+
+      100% {
+        transform: translateY(-100%);
+        opacity: 1
+      }
+    }
+
+    #intro-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0
+    }
+
+    #intro::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 5;
       pointer-events: none;
-      background-image: linear-gradient(rgba(0, 229, 200, .018) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 229, 200, .018) 1px, transparent 1px);
-      background-size: 52px 52px;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, .22) 2px, rgba(0, 0, 0, .22) 4px)
     }
 
-    .g1,
-    .g2,
-    .g3 {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(110px);
+    #intro::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 4;
       pointer-events: none;
-      z-index: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, .75) 100%)
     }
 
-    .g1 {
-      width: clamp(260px, 48vw, 520px);
-      height: clamp(260px, 48vw, 520px);
-      top: -100px;
-      left: -80px;
-      background: radial-gradient(circle, rgba(0, 229, 200, .07), transparent 65%);
-      animation: ga 18s ease-in-out infinite alternate;
+    .intro-grain {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 120px;
+      mix-blend-mode: overlay;
+      opacity: .28;
+      animation: grainShift .65s steps(2) infinite
     }
 
-    .g2 {
-      width: clamp(200px, 38vw, 420px);
-      height: clamp(200px, 38vw, 420px);
-      bottom: -80px;
-      right: -60px;
-      background: radial-gradient(circle, rgba(255, 176, 32, .05), transparent 65%);
-      animation: gb 22s ease-in-out infinite alternate;
-    }
+    @keyframes grainShift {
+      0% {
+        transform: translate(0, 0)
+      }
 
-    .g3 {
-      width: clamp(150px, 28vw, 320px);
-      height: clamp(150px, 28vw, 320px);
-      top: 50%;
-      left: 50%;
-      background: radial-gradient(circle, rgba(34, 212, 122, .04), transparent 65%);
-      animation: gc 16s ease-in-out infinite alternate;
-    }
+      50% {
+        transform: translate(-3px, 2px)
+      }
 
-    @keyframes ga {
-      to {
-        transform: translate(35px, 25px)scale(1.1)
+      100% {
+        transform: translate(2px, -3px)
       }
     }
 
-    @keyframes gb {
-      to {
-        transform: translate(-25px, -18px)scale(1.08)
-      }
+    .intro-corner {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-color: rgba(237, 233, 224, .18);
+      border-style: solid;
+      z-index: 8;
+      animation: fadeIn .8s .3s ease both
     }
 
-    @keyframes gc {
-      to {
-        transform: translate(-18px, 22px)scale(1.06)
-      }
+    .intro-corner.tl {
+      top: 28px;
+      left: 28px;
+      border-width: 2px 0 0 2px
     }
 
-    @keyframes sdn {
+    .intro-corner.tr {
+      top: 28px;
+      right: 28px;
+      border-width: 2px 2px 0 0
+    }
+
+    .intro-corner.bl {
+      bottom: 28px;
+      left: 28px;
+      border-width: 0 0 2px 2px
+    }
+
+    .intro-corner.br {
+      bottom: 28px;
+      right: 28px;
+      border-width: 0 2px 2px 0
+    }
+
+    @keyframes fadeIn {
       from {
-        opacity: 0;
-        transform: translateY(-12px)
+        opacity: 0
       }
 
       to {
-        opacity: 1;
-        transform: translateY(0)
+        opacity: 1
       }
     }
 
-    @keyframes ru {
+    .intro-hline {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(237, 233, 224, .1), rgba(237, 233, 224, .06), transparent);
+      z-index: 7;
+      animation: fadeIn .8s .6s ease both
+    }
+
+    .intro-hline.top {
+      top: 72px
+    }
+
+    .intro-hline.bot {
+      bottom: 72px
+    }
+
+    .intro-side {
+      position: absolute;
+      z-index: 8;
+      font-size: 8px;
+      letter-spacing: 5px;
+      color: rgba(180, 168, 150, .25);
+      text-transform: uppercase;
+      animation: fadeIn .8s 1s ease both
+    }
+
+    .intro-side.left {
+      left: 28px;
+      top: 50%;
+      transform: translateY(-50%) rotate(-90deg);
+      transform-origin: center
+    }
+
+    .intro-side.right {
+      right: 28px;
+      top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      transform-origin: center
+    }
+
+    .intro-content {
+      position: relative;
+      z-index: 8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      text-align: center;
+      width: 100%;
+      padding: 0 20px
+    }
+
+    .intro-eyebrow {
+      font-size: clamp(7px, 1.3vw, 10px);
+      letter-spacing: 10px;
+      color: rgba(180, 168, 150, .45);
+      text-transform: uppercase;
+      margin-bottom: clamp(20px, 4vw, 36px);
+      animation: slideUp .7s .2s ease both;
+      display: flex;
+      align-items: center;
+      gap: 16px
+    }
+
+    .intro-eyebrow::before,
+    .intro-eyebrow::after {
+      content: '';
+      width: clamp(30px, 6vw, 60px);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(180, 168, 150, .3))
+    }
+
+    .intro-eyebrow::after {
+      transform: scaleX(-1)
+    }
+
+    @keyframes slideUp {
       from {
         opacity: 0;
         transform: translateY(16px)
@@ -155,7 +264,1172 @@
       }
     }
 
-    @keyframes bl {
+    .vinyl-stage {
+      position: relative;
+      width: clamp(180px, 30vw, 280px);
+      height: clamp(180px, 30vw, 280px);
+      margin-bottom: clamp(20px, 4vw, 36px);
+      animation: recordDrop 1.2s .0s cubic-bezier(.34, 1.56, .64, 1) both
+    }
+
+    @keyframes recordDrop {
+      from {
+        opacity: 0;
+        transform: scale(.5) rotate(-20deg)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) rotate(0deg)
+      }
+    }
+
+    .vinyl-disc {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+      animation: vinylSpin 2.4s linear infinite;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .04), 0 20px 80px rgba(0, 0, 0, .9), inset 0 0 0 1px rgba(255, 255, 255, .03)
+    }
+
+    @keyframes vinylSpin {
+      from {
+        transform: rotate(0deg)
+      }
+
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .vinyl-disc::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, #060402 0%, #060402 6%, #141210 7%, #080604 10%, #141210 11%, #080604 14%, #141210 15%, #080604 18%, #141210 19%, #080604 22%, #141210 23%, #080604 26%, #141210 27%, #080604 30%, #141210 31%, #080604 34%, #141210 35%, #080604 38%, #141210 39%, #080604 42%, #141210 43%, #080604 46%, #141210 47%, #080604 49%, #100e0c 50%)
+    }
+
+    .vinyl-sheen {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 2;
+      background: conic-gradient(from 200deg, rgba(255, 255, 255, .0) 0deg, rgba(255, 255, 255, .07) 30deg, rgba(255, 255, 255, .02) 60deg, rgba(255, 255, 255, .0) 100deg, rgba(255, 255, 255, .0) 220deg, rgba(255, 255, 255, .04) 250deg, rgba(255, 255, 255, .0) 280deg, rgba(255, 255, 255, .0) 360deg);
+      animation: sheenRotate 8s linear infinite reverse
+    }
+
+    @keyframes sheenRotate {
+      from {
+        transform: rotate(0)
+      }
+
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .vinyl-wave-cv {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0;
+      transition: opacity .5s
+    }
+
+    .vinyl-label {
+      position: absolute;
+      z-index: 4;
+      top: 50%;
+      left: 50%;
+      width: 34%;
+      height: 34%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 36%, #2a261f, #16130f);
+      border: 1.5px solid #3a342a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 3px
+    }
+
+    .vinyl-label-logo {
+      font-family: var(--vt);
+      font-size: clamp(10px, 2vw, 18px);
+      letter-spacing: 2px;
+      color: rgba(237, 233, 224, .7);
+      line-height: 1
+    }
+
+    .vinyl-label-sub {
+      font-size: clamp(4px, .8vw, 6px);
+      letter-spacing: 3px;
+      color: rgba(180, 168, 150, .35);
+      text-transform: uppercase;
+      line-height: 1
+    }
+
+    .vinyl-hole {
+      width: clamp(8px, 1.5vw, 14px);
+      height: clamp(8px, 1.5vw, 14px);
+      border-radius: 50%;
+      background: #cc2200;
+      box-shadow: 0 0 10px rgba(200, 30, 0, .7), 0 0 24px rgba(200, 30, 0, .3);
+      margin-top: 2px;
+      animation: holePulse 1.6s ease-in-out infinite
+    }
+
+    @keyframes holePulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 8px rgba(200, 30, 0, .6), 0 0 20px rgba(200, 30, 0, .25)
+      }
+
+      50% {
+        box-shadow: 0 0 14px rgba(200, 30, 0, .9), 0 0 36px rgba(200, 30, 0, .45)
+      }
+    }
+
+    .vinyl-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(200, 30, 0, .15);
+      pointer-events: none;
+      z-index: 2;
+      animation: vinylRipple 2.2s ease-out infinite
+    }
+
+    .vinyl-ring:nth-child(1) {
+      inset: -12px;
+      animation-delay: 0s
+    }
+
+    .vinyl-ring:nth-child(2) {
+      inset: -26px;
+      border-color: rgba(200, 30, 0, .08);
+      animation-delay: -.75s
+    }
+
+    .vinyl-ring:nth-child(3) {
+      inset: -42px;
+      border-color: rgba(200, 30, 0, .04);
+      animation-delay: -1.5s
+    }
+
+    @keyframes vinylRipple {
+      0% {
+        opacity: 1;
+        transform: scale(.9)
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.15)
+      }
+    }
+
+    .vinyl-arm {
+      position: absolute;
+      width: clamp(60px, 12vw, 110px);
+      height: 3px;
+      background: linear-gradient(90deg, rgba(200, 190, 175, .6), rgba(200, 190, 175, .15));
+      top: 50%;
+      right: -clamp(50px, 9vw, 80px);
+      transform-origin: right center;
+      transform: translateY(-50%) rotate(-28deg);
+      z-index: 5;
+      border-radius: 2px;
+      animation: armSettle 1.4s .8s cubic-bezier(.34, 1.56, .64, 1) both
+    }
+
+    @keyframes armSettle {
+      from {
+        transform: translateY(-50%) rotate(-55deg);
+        opacity: 0
+      }
+
+      to {
+        transform: translateY(-50%) rotate(-28deg);
+        opacity: 1
+      }
+    }
+
+    .vinyl-arm::before {
+      content: '';
+      position: absolute;
+      right: -4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(200, 190, 175, .8);
+      box-shadow: 0 0 4px rgba(0, 0, 0, .5)
+    }
+
+    .vinyl-arm::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(200, 190, 175, .4)
+    }
+
+    .intro-logo {
+      font-family: var(--vt);
+      font-size: clamp(70px, 16vw, 140px);
+      letter-spacing: clamp(6px, 2vw, 22px);
+      color: #ede9e0;
+      line-height: 1;
+      position: relative;
+      animation: logoReveal 1.2s .5s cubic-bezier(.22, 1, .36, 1) both;
+      text-shadow: 0 0 80px rgba(237, 233, 224, .07), 4px 4px 0 rgba(10, 8, 6, .7), -1px -1px 0 rgba(100, 90, 80, .1)
+    }
+
+    @keyframes logoReveal {
+      0% {
+        opacity: 0;
+        letter-spacing: clamp(40px, 10vw, 100px);
+        filter: blur(16px)
+      }
+
+      50% {
+        opacity: 1;
+        filter: blur(0)
+      }
+
+      100% {
+        opacity: 1;
+        letter-spacing: clamp(6px, 2vw, 22px)
+      }
+    }
+
+    .intro-logo-line {
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(237, 233, 224, .4) 30%, rgba(237, 233, 224, .7) 50%, rgba(237, 233, 224, .4) 70%, transparent 100%);
+      animation: lineReveal .8s 1.5s ease both;
+      transform: scaleX(0)
+    }
+
+    @keyframes lineReveal {
+      from {
+        transform: scaleX(0);
+        opacity: 0
+      }
+
+      to {
+        transform: scaleX(1);
+        opacity: 1
+      }
+    }
+
+    .intro-tagline {
+      font-family: var(--cond);
+      font-weight: 700;
+      font-size: clamp(10px, 2vw, 15px);
+      letter-spacing: clamp(5px, 1.5vw, 10px);
+      color: rgba(180, 168, 150, .5);
+      text-transform: uppercase;
+      margin-top: clamp(8px, 1.5vw, 14px);
+      animation: slideUp .7s 1s ease both
+    }
+
+    #intro-wave-cv {
+      display: block;
+      width: clamp(220px, 55vw, 520px);
+      height: clamp(36px, 7vw, 60px);
+      margin-top: clamp(14px, 2.5vw, 22px);
+      animation: slideUp .6s 1.1s ease both;
+      opacity: 0;
+      animation-fill-mode: both
+    }
+
+    .intro-loader {
+      width: clamp(160px, 38vw, 320px);
+      margin-top: clamp(14px, 2.5vw, 22px);
+      animation: slideUp .5s 1.3s ease both
+    }
+
+    .intro-progbar {
+      height: 2px;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .07);
+      overflow: hidden
+    }
+
+    .intro-progfill {
+      height: 100%;
+      width: 0%;
+      background: repeating-linear-gradient(90deg, rgba(237, 233, 224, .55) 0px, rgba(237, 233, 224, .55) 5px, rgba(100, 90, 80, .25) 5px, rgba(100, 90, 80, .25) 10px);
+      transition: width .06s linear
+    }
+
+    .intro-progstatus {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px
+    }
+
+    .intro-status {
+      font-size: clamp(6px, 1vw, 8px);
+      letter-spacing: 3px;
+      color: rgba(117, 110, 100, .6);
+      text-transform: uppercase
+    }
+
+    .intro-pct {
+      font-family: var(--vt);
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: rgba(180, 168, 150, .4)
+    }
+
+    .intro-enter {
+      margin-top: clamp(16px, 3vw, 26px);
+      font-family: var(--vt);
+      font-size: clamp(14px, 2.5vw, 20px);
+      letter-spacing: 5px;
+      color: rgba(237, 233, 224, .4);
+      animation: enterBlink 1.4s 2.5s step-end infinite, slideUp .6s 2.2s ease both;
+      cursor: inherit
+    }
+
+    .intro-enter.hidden {
+      opacity: 0 !important;
+      animation: none !important
+    }
+
+    @keyframes enterBlink {
+
+      0%,
+      100% {
+        opacity: .4
+      }
+
+      50% {
+        opacity: .12
+      }
+    }
+
+    .intro-bottom {
+      position: absolute;
+      bottom: 28px;
+      left: 0;
+      right: 0;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(28px, 5vw, 56px);
+      animation: fadeIn .8s 1.5s ease both
+    }
+
+    .intro-bottom-txt {
+      font-size: 7px;
+      letter-spacing: 4px;
+      color: rgba(117, 110, 100, .3);
+      text-transform: uppercase
+    }
+
+    .intro-eqbars {
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+      height: 14px
+    }
+
+    .intro-eqbar {
+      width: 3px;
+      background: rgba(180, 168, 150, .25);
+      animation: eqBar 1.2s ease-in-out infinite alternate
+    }
+
+    .intro-eqbar:nth-child(1) {
+      height: 4px;
+      animation-delay: 0s
+    }
+
+    .intro-eqbar:nth-child(2) {
+      height: 10px;
+      animation-delay: .12s
+    }
+
+    .intro-eqbar:nth-child(3) {
+      height: 14px;
+      animation-delay: .24s
+    }
+
+    .intro-eqbar:nth-child(4) {
+      height: 7px;
+      animation-delay: .36s
+    }
+
+    .intro-eqbar:nth-child(5) {
+      height: 12px;
+      animation-delay: .48s
+    }
+
+    .intro-eqbar:nth-child(6) {
+      height: 5px;
+      animation-delay: .60s
+    }
+
+    .intro-eqbar:nth-child(7) {
+      height: 9px;
+      animation-delay: .72s
+    }
+
+    @keyframes eqBar {
+      from {
+        transform: scaleY(.2)
+      }
+
+      to {
+        transform: scaleY(1)
+      }
+    }
+
+    /* ════ MAIN APP ════ */
+    body {
+      font-family: var(--body);
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 180px;
+      mix-blend-mode: multiply;
+      opacity: .2;
+      animation: grainShift 0.9s steps(2) infinite
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(26, 23, 20, .018) 2px, rgba(26, 23, 20, .018) 4px)
+    }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none
+    }
+
+    .shell {
+      position: relative;
+      z-index: 3;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 4vw, 28px) 80px;
+      display: flex;
+      flex-direction: column
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(237, 233, 224, .96);
+      backdrop-filter: blur(4px);
+      border-bottom: 2px solid var(--ink);
+      height: clamp(48px, 7vh, 56px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(16px, 4vw, 28px);
+      margin: 0 calc(-1*clamp(16px, 4vw, 28px));
+      animation: navIn .5s ease both
+    }
+
+    @keyframes navIn {
+      from {
+        transform: translateY(-100%)
+      }
+
+      to {
+        transform: translateY(0)
+      }
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none
+    }
+
+    .logo-name {
+      font-family: var(--vt);
+      font-size: 28px;
+      letter-spacing: 3px;
+      color: var(--ink);
+      line-height: 1
+    }
+
+    .logo-sep {
+      width: 2px;
+      height: 18px;
+      background: var(--ink);
+      margin: 0 6px
+    }
+
+    .logo-sub {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase
+    }
+
+    .nav-right {
+      font-family: var(--vt);
+      font-size: 18px;
+      color: var(--muted2);
+      letter-spacing: 2px
+    }
+
+    .hero {
+      padding: clamp(16px, 4vw, 26px) 0 clamp(8px, 2vw, 14px);
+      text-align: center;
+      animation: fadeUp .5s .1s ease both;
+      position: relative
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 8.5px;
+      letter-spacing: 5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px
+    }
+
+    .hero-label::before,
+    .hero-label::after {
+      content: '';
+      width: 28px;
+      height: 1px;
+      background: var(--line2)
+    }
+
+    #hero-wave {
+      display: block;
+      width: 100%;
+      height: clamp(60px, 12vw, 88px);
+      margin: 0 auto 10px
+    }
+
+    .hero-h {
+      font-family: var(--cond);
+      font-weight: 900;
+      font-size: clamp(36px, 9vw, 62px);
+      letter-spacing: -0.5px;
+      line-height: .9;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-shadow: 2px 2px 0 rgba(26, 23, 20, .12)
+    }
+
+    .hero-p {
+      font-size: clamp(12px, 1.7vw, 14px);
+      color: var(--muted2);
+      margin-top: 8px;
+      line-height: 1.7;
+      font-style: italic
+    }
+
+    .rule {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: clamp(12px, 2.5vw, 18px) 0 clamp(8px, 1.5vw, 12px);
+      animation: fadeUp .5s .3s ease both
+    }
+
+    .rule-line {
+      flex: 1;
+      height: 1px;
+      background: var(--ink)
+    }
+
+    .rule-lbl {
+      font-family: var(--cond);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--ink);
+      padding: 0 14px;
+      text-transform: uppercase
+    }
+
+    .step {
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      overflow: visible;
+      margin-bottom: clamp(6px, 1.2vw, 9px);
+      opacity: 0;
+      animation: cardIn .45s ease both;
+      position: relative;
+      box-shadow: 3px 3px 0 var(--ink2);
+      transition: box-shadow .18s, transform .18s
+    }
+
+    .step:hover {
+      box-shadow: 5px 5px 0 var(--ink);
+      transform: translate(-1px, -1px)
+    }
+
+    .step:nth-child(1) {
+      animation-delay: .1s
+    }
+
+    .step:nth-child(2) {
+      animation-delay: .16s
+    }
+
+    .step:nth-child(3) {
+      animation-delay: .22s
+    }
+
+    .step:nth-child(4) {
+      animation-delay: .28s
+    }
+
+    .step:nth-child(5) {
+      animation-delay: .34s
+    }
+
+    .step:nth-child(6) {
+      animation-delay: .40s
+    }
+
+    .step:nth-child(7) {
+      animation-delay: .46s
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .step-head {
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: clamp(9px, 1.8vw, 11px) clamp(14px, 3vw, 18px);
+      border-bottom: 1.5px solid var(--ink);
+      background: repeating-linear-gradient(0deg, var(--cream2) 0px, var(--cream2) 2px, rgba(26, 23, 20, .02) 2px, rgba(26, 23, 20, .02) 4px)
+    }
+
+    .sn {
+      font-family: var(--vt);
+      font-size: 20px;
+      color: var(--ink);
+      width: 22px;
+      height: 22px;
+      border: 1.5px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      line-height: 1;
+      padding-bottom: 1px
+    }
+
+    .st {
+      font-family: var(--cond);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--ink);
+      flex: 1
+    }
+
+    .sd {
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 1px;
+      color: var(--ink);
+      opacity: 0;
+      transition: opacity .3s
+    }
+
+    .sd.on {
+      opacity: 1
+    }
+
+    .step-body {
+      padding: clamp(12px, 2.5vw, 16px)
+    }
+
+    /* TABS */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      margin-bottom: 12px;
+      border: 1.5px solid var(--ink);
+      overflow: hidden
+    }
+
+    .tab {
+      padding: clamp(10px, 2vw, 12px) 12px;
+      background: var(--cream2);
+      border: none;
+      font-family: var(--cond);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      cursor: inherit;
+      transition: all .18s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      outline: none;
+      position: relative
+    }
+
+    .tab:first-child {
+      border-right: 1.5px solid var(--ink)
+    }
+
+    .tab::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--ink);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .22s cubic-bezier(.22, 1, .36, 1)
+    }
+
+    .tab:hover {
+      background: var(--cream);
+      color: var(--ink)
+    }
+
+    .tab.on {
+      background: var(--cream);
+      color: var(--ink)
+    }
+
+    .tab.on::after {
+      transform: scaleX(1)
+    }
+
+    .tab svg {
+      width: 12px;
+      height: 12px;
+      opacity: .55;
+      transition: opacity .18s
+    }
+
+    .tab.on svg {
+      opacity: 1
+    }
+
+    .panel {
+      display: none
+    }
+
+    .panel.on {
+      display: block
+    }
+
+    /* DROPZONE */
+    .dz {
+      border: 1.5px dashed var(--line2);
+      padding: clamp(20px, 4.5vw, 28px) 16px;
+      text-align: center;
+      cursor: inherit;
+      position: relative;
+      transition: all .22s;
+      background: var(--cream2);
+      overflow: hidden
+    }
+
+    .dz input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: inherit;
+      width: 100%;
+      height: 100%
+    }
+
+    .dz::before,
+    .dz::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-color: var(--line2);
+      border-style: solid;
+      transition: border-color .22s
+    }
+
+    .dz::before {
+      top: 4px;
+      left: 4px;
+      border-width: 1.5px 0 0 1.5px
+    }
+
+    .dz::after {
+      bottom: 4px;
+      right: 4px;
+      border-width: 0 1.5px 1.5px 0
+    }
+
+    .dz:hover,
+    .dz.ov {
+      border-color: var(--ink);
+      background: var(--cream)
+    }
+
+    .dz:hover::before,
+    .dz.ov::before,
+    .dz:hover::after,
+    .dz.ov::after {
+      border-color: var(--ink)
+    }
+
+    .dz-wv {
+      display: block;
+      margin: 0 auto 12px;
+      width: 90px;
+      height: 32px;
+      overflow: visible
+    }
+
+    .dz-wline {
+      fill: none;
+      stroke: var(--muted);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: 350;
+      stroke-dashoffset: 350;
+      animation: wlDraw 1.4s .4s ease forwards;
+      transition: stroke .2s
+    }
+
+    @keyframes wlDraw {
+      to {
+        stroke-dashoffset: 0
+      }
+    }
+
+    .dz:hover .dz-wline,
+    .dz.ov .dz-wline {
+      stroke: var(--ink)
+    }
+
+    .dz-t {
+      font-family: var(--cond);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      line-height: 1.6
+    }
+
+    .dz-t strong {
+      color: var(--ink)
+    }
+
+    .dz-hint {
+      font-family: var(--mono);
+      font-size: 7.5px;
+      color: var(--muted);
+      margin-top: 5px;
+      letter-spacing: 1px
+    }
+
+    .file-ok {
+      display: none;
+      margin-top: 9px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--ink)
+    }
+
+    .file-ok.on {
+      display: flex
+    }
+
+    .rbars {
+      display: none;
+      margin-top: 9px;
+      background: var(--cream);
+      border: 1px solid var(--line);
+      padding: 7px 11px
+    }
+
+    .rbars.on {
+      display: block
+    }
+
+    .rbars-lbl {
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: 2.5px;
+      color: var(--muted);
+      margin-bottom: 5px
+    }
+
+    .rbars-row {
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+      height: 18px
+    }
+
+    .rbar {
+      flex: 1;
+      background: rgba(26, 23, 20, .1);
+      border-top: 1px solid rgba(26, 23, 20, .2)
+    }
+
+    /* VINYL RECORDER */
+    .rec-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0
+    }
+
+    .disc-wrap {
+      position: relative;
+      width: clamp(120px, 24vw, 150px);
+      height: clamp(120px, 24vw, 150px);
+      cursor: inherit
+    }
+
+    .disc {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, #0a0906 0%, #0a0906 14%, #1a1714 15%, #0f0d0b 19%, #1a1714 20%, #0f0d0b 25%, #1a1714 26%, #0f0d0b 31%, #1a1714 32%, #0f0d0b 37%, #1a1714 38%, #0f0d0b 43%, #1a1714 44%, #0f0d0b 49%, #1a1714 50%);
+      box-shadow: 0 3px 12px rgba(26, 23, 20, .3), inset 0 0 0 1px rgba(255, 255, 255, .04);
+      transition: box-shadow .3s
+    }
+
+    .disc-wrap:hover .disc {
+      box-shadow: 0 6px 22px rgba(26, 23, 20, .45)
+    }
+
+    .disc-wrap.spinning .disc {
+      animation: discSpin 1.6s linear infinite
+    }
+
+    @keyframes discSpin {
+      from {
+        transform: rotate(0deg)
+      }
+
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .disc-sheen {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+      background: conic-gradient(from 120deg, rgba(255, 255, 255, .0) 0deg, rgba(255, 255, 255, .06) 40deg, rgba(255, 255, 255, .0) 80deg, rgba(255, 255, 255, .0) 360deg)
+    }
+
+    .disc-wave-canvas {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity .4s
+    }
+
+    .disc-wrap.spinning .disc-wave-canvas {
+      opacity: 1
+    }
+
+    .disc-label {
+      position: absolute;
+      z-index: 3;
+      top: 50%;
+      left: 50%;
+      width: 35%;
+      height: 35%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: var(--cream);
+      border: 2px solid var(--cream3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 2px;
+      pointer-events: none
+    }
+
+    .disc-hole {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ink2);
+      transition: all .26s cubic-bezier(.34, 1.56, .64, 1)
+    }
+
+    .disc-wrap.spinning .disc-hole {
+      background: #cc2200;
+      box-shadow: 0 0 6px rgba(200, 30, 0, .5)
+    }
+
+    .disc-label-txt {
+      font-family: var(--mono);
+      font-size: 6px;
+      letter-spacing: 1px;
+      color: var(--muted2);
+      line-height: 1;
+      text-transform: uppercase
+    }
+
+    .rec-btn {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      cursor: inherit;
+      outline: none;
+      z-index: 4
+    }
+
+    .disc-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid rgba(26, 23, 20, .2);
+      animation: discRipple 2s ease-out infinite;
+      opacity: 0;
+      pointer-events: none
+    }
+
+    .disc-ring:nth-child(1) {
+      inset: -8px;
+      animation-delay: 0s
+    }
+
+    .disc-ring:nth-child(2) {
+      inset: -18px;
+      border-color: rgba(26, 23, 20, .12);
+      animation-delay: -.65s
+    }
+
+    .disc-ring:nth-child(3) {
+      inset: -28px;
+      border-color: rgba(26, 23, 20, .07);
+      animation-delay: -1.3s
+    }
+
+    .disc-wrap:not(.spinning) .disc-ring {
+      display: none
+    }
+
+    @keyframes discRipple {
+      0% {
+        opacity: .8;
+        transform: scale(.92)
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.2)
+      }
+    }
+
+    .rec-timer {
+      font-family: var(--vt);
+      font-size: 28px;
+      letter-spacing: 4px;
+      color: var(--ink);
+      display: none;
+      animation: timerBlink .8s step-end infinite
+    }
+
+    .rec-timer.on {
+      display: block
+    }
+
+    @keyframes timerBlink {
 
       0%,
       100% {
@@ -163,1687 +1437,1605 @@
       }
 
       50% {
-        opacity: .3
+        opacity: .4
       }
     }
 
-    @keyframes rp {
-
-      0%,
-      100% {
-        box-shadow: 0 0 20px rgba(255, 75, 110, .28)
-      }
-
-      50% {
-        box-shadow: 0 0 38px rgba(255, 75, 110, .5)
-      }
-    }
-
-    @keyframes sh {
-      0% {
-        background-position: 200% center
-      }
-
-      100% {
-        background-position: -200% center
-      }
-    }
-
-    .shell {
-      position: relative;
-      z-index: 1;
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 0 clamp(12px, 3vw, 24px) 80px;
-    }
-
-    /* TOPBAR */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: clamp(50px, 7vh, 62px);
-      padding: 0 clamp(12px, 3vw, 24px);
-      margin: 0 calc(-1*clamp(12px, 3vw, 24px));
-      background: rgba(8, 12, 18, .9);
-      backdrop-filter: blur(24px);
-      border-bottom: 1px solid var(--line);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      animation: sdn .5s ease both;
-      gap: 10px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      flex-shrink: 0;
-    }
-
-    .bico {
-      width: clamp(28px, 4.5vw, 36px);
-      height: clamp(28px, 4.5vw, 36px);
-      background: linear-gradient(135deg, var(--cyan), var(--cyan2));
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 16px var(--ca30);
-      flex-shrink: 0;
-    }
-
-    .bico svg {
-      width: 15px;
-      height: 15px;
-      fill: var(--bg);
-    }
-
-    .bname {
-      font-family: var(--disp);
-      font-size: clamp(18px, 3vw, 24px);
-      font-weight: 800;
-      letter-spacing: 3px;
-      color: var(--txt);
-      line-height: 1;
-    }
-
-    .bname b {
-      color: var(--cyan);
-    }
-
-    .btag {
-      font-family: var(--mono);
-      font-size: clamp(7px, 1vw, 8px);
-      letter-spacing: 2px;
-      color: var(--txt3);
-      margin-top: 1px;
-    }
-
-    @media(max-width:380px) {
-      .btag {
-        display: none;
-      }
-    }
-
-    .stat {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 5px 13px;
-      font-family: var(--mono);
-      font-size: clamp(8px, 1.3vw, 10px);
-      color: var(--txt2);
-      letter-spacing: .05em;
-      white-space: nowrap;
-    }
-
-    .sdot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--txt3);
-      transition: all .4s;
-    }
-
-    .sdot.ok {
-      background: var(--green);
-      box-shadow: 0 0 7px var(--green);
-      animation: bl 2.5s ease infinite;
-    }
-
-    .sdot.warn {
-      background: var(--amber);
-      box-shadow: 0 0 7px var(--amber);
-    }
-
-    .sdot.err {
-      background: var(--red);
-      box-shadow: 0 0 7px var(--red);
-    }
-
-    /* HERO */
-    .hero {
-      text-align: center;
-      padding: clamp(22px, 4vw, 42px) 0 clamp(18px, 3vw, 32px);
-      animation: ru .6s .1s ease both;
-    }
-
-    .hkick {
-      font-family: var(--mono);
-      font-size: clamp(9px, 1.3vw, 10px);
-      letter-spacing: 4px;
-      color: var(--cyan);
-      text-transform: uppercase;
-      margin-bottom: clamp(7px, 1.3vw, 11px);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .hkick::before,
-    .hkick::after {
-      content: '';
-      width: 20px;
-      height: 1px;
-      background: var(--cyan);
-      opacity: .4;
-    }
-
-    .hh {
-      font-family: var(--disp);
-      font-weight: 800;
-      font-size: clamp(34px, 7.5vw, 72px);
-      letter-spacing: clamp(2px, .8vw, 4px);
-      line-height: .93;
-      color: var(--txt);
-    }
-
-    .hh em {
-      color: var(--cyan);
-      font-style: normal;
-    }
-
-    .hp {
-      margin-top: clamp(7px, 1.3vw, 11px);
-      font-size: clamp(12px, 1.7vw, 14px);
-      color: var(--txt2);
-      max-width: 380px;
-      margin-inline: auto;
-      line-height: 1.6;
-    }
-
-    .steps {
-      display: flex;
-      justify-content: center;
-      gap: clamp(8px, 1.8vw, 14px);
-      margin-top: clamp(10px, 1.8vw, 16px);
-      flex-wrap: wrap;
-    }
-
-    .step {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--mono);
-      font-size: clamp(9px, 1.2vw, 10px);
-      letter-spacing: 1.5px;
-      color: var(--txt3);
-    }
-
-    .stn {
-      width: 21px;
-      height: 21px;
-      border-radius: 50%;
-      border: 1px solid var(--line2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .rec-lbl {
+      font-family: var(--cond);
+      font-weight: 700;
       font-size: 10px;
-      font-weight: 600;
-      color: var(--cyan);
-      flex-shrink: 0;
+      letter-spacing: 4px;
+      color: var(--muted2);
+      text-transform: uppercase
     }
 
-    .stsp {
-      width: 22px;
-      height: 1px;
-      background: var(--line2);
-    }
-
-    @media(max-width:400px) {
-      .stsp {
-        display: none;
-      }
-
-      .steps {
-        gap: 5px;
-      }
-    }
-
-    /* DASHBOARD */
-    .dash {
-      display: grid;
-      grid-template-columns: 34fr 38fr 28fr;
-      gap: var(--g);
-      animation: ru .6s .2s ease both;
-    }
-
-    @media(max-width:900px) {
-      .dash {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto;
-      }
-
-      .ps {
-        grid-column: 1/-1;
-      }
-    }
-
-    @media(max-width:580px) {
-      .dash {
-        grid-template-columns: 1fr;
-      }
-
-      .pv {
-        order: 2;
-      }
-
-      .ps {
-        order: 1;
-      }
-
-      .po {
-        order: 3;
-      }
-    }
-
-    /* PANEL */
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--r);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .panel:hover {
-      border-color: var(--line2);
-    }
-
-    .ph {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: clamp(10px, 1.8vw, 13px) clamp(14px, 2.5vw, 18px);
-      border-bottom: 1px solid var(--line);
-      background: linear-gradient(90deg, rgba(0, 229, 200, .07), transparent);
-      font-family: var(--mono);
-      font-size: clamp(8px, 1.2vw, 9px);
-      letter-spacing: 3px;
-      color: var(--cyan);
-      text-transform: uppercase;
-      flex-shrink: 0;
-    }
-
-    .ph svg {
-      width: 12px;
-      height: 12px;
-      opacity: .6;
-    }
-
-    .pb {
-      padding: clamp(14px, 2.5vw, 20px);
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* studio panel highlight */
-    .ps {
-      background: var(--panel);
-      border: 1px solid var(--ca20);
-      box-shadow: 0 0 0 1px rgba(0, 229, 200, .06), 0 8px 40px rgba(0, 0, 0, .4);
-    }
-
-    .ps .ph {
-      background: linear-gradient(90deg, rgba(0, 229, 200, .13), transparent);
-    }
-
-    /* FIELD */
-    .fl {
-      font-family: var(--mono);
-      font-size: clamp(8px, 1.2vw, 9px);
-      letter-spacing: 2.5px;
-      color: var(--cyan);
-      text-transform: uppercase;
-      margin-bottom: clamp(6px, 1.2vw, 8px);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .fg {
-      margin-bottom: clamp(12px, 2.2vw, 16px);
-    }
-
-    .fg:last-child {
-      margin-bottom: 0;
-    }
-
-    /* DROPZONE */
-    .dz {
-      border: 2px dashed var(--line2);
-      border-radius: 10px;
-      padding: clamp(16px, 3vw, 24px) clamp(12px, 2vw, 16px);
-      text-align: center;
-      cursor: pointer;
-      position: relative;
-      transition: all .2s;
-      background: var(--bg2);
-    }
-
-    .dz input[type=file] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
-    }
-
-    .dz:hover,
-    .dz.ov {
-      border-color: var(--cyan);
-      background: var(--ca12);
-    }
-
-    .dzic {
-      width: 34px;
-      height: 34px;
-      margin: 0 auto clamp(7px, 1.3vw, 10px);
-      background: var(--panel2);
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform .2s;
-    }
-
-    .dz:hover .dzic {
-      transform: translateY(-3px);
-    }
-
-    .dzic svg {
-      width: 15px;
-      height: 15px;
-      color: var(--cyan);
-    }
-
-    .dzt {
-      font-size: clamp(11px, 1.7vw, 12px);
-      color: var(--txt2);
-      line-height: 1.6;
-    }
-
-    .dzt strong {
-      color: var(--cyan);
-      font-weight: 600;
-    }
-
-    .dzh {
-      margin-top: 3px;
-      font-family: var(--mono);
-      font-size: clamp(8px, 1.1vw, 9px);
-      color: var(--txt3);
-      letter-spacing: 1px;
-    }
-
-    .fcho {
-      display: none;
-      margin-top: 6px;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      font-family: var(--mono);
-      font-size: clamp(9px, 1.2vw, 10px);
-      color: var(--green);
-    }
-
-    .fcho.on {
-      display: flex;
-    }
-
-    /* OR */
-    .or {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      margin: clamp(9px, 1.8vw, 13px) 0;
-    }
-
-    .or::before,
-    .or::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--line);
-    }
-
-    .or span {
-      font-family: var(--mono);
-      font-size: clamp(8px, 1.1vw, 9px);
-      color: var(--txt3);
-      letter-spacing: 2px;
-    }
-
-    /* RECORDER */
-    .rec {
-      display: flex;
-      align-items: center;
-      gap: clamp(10px, 2vw, 14px);
-    }
-
-    .rring {
-      width: clamp(52px, 8vw, 64px);
-      height: clamp(52px, 8vw, 64px);
-      border-radius: 50%;
-      border: 2px solid var(--line2);
-      background: var(--bg2);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all .25s;
-      outline: none;
-      flex-shrink: 0;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .rring:hover {
-      border-color: var(--red);
-      box-shadow: 0 0 18px rgba(255, 75, 110, .2);
-    }
-
-    .rring.on {
-      border-color: var(--red);
-      box-shadow: 0 0 28px rgba(255, 75, 110, .32);
-      animation: rp 1s ease-in-out infinite;
-    }
-
-    .rdot {
-      width: clamp(16px, 2.8vw, 22px);
-      height: clamp(16px, 2.8vw, 22px);
-      border-radius: 50%;
-      background: var(--red);
-      transition: all .25s;
-    }
-
-    .rring.on .rdot {
-      border-radius: 4px;
-      width: clamp(13px, 2.3vw, 18px);
-      height: clamp(13px, 2.3vw, 18px);
-    }
-
-    .rlbl {
-      font-family: var(--mono);
-      font-size: clamp(9px, 1.3vw, 10px);
-      letter-spacing: 2.5px;
-      color: var(--txt2);
-      text-transform: uppercase;
-      flex: 1;
-    }
-
-    .rtip {
+    .rec-tip {
       font-size: 11px;
-      color: var(--txt3);
-      margin-top: 3px;
+      color: var(--muted);
+      font-style: italic
     }
 
-    .ww {
+    .wavebox {
       width: 100%;
       height: 36px;
       display: none;
-      border-radius: 7px;
       overflow: hidden;
-      margin-top: 8px;
+      margin-top: 4px;
+      border: 1px solid var(--line);
+      background: var(--cream)
     }
 
-    .ww.on {
-      display: block;
+    .wavebox.on {
+      display: block
     }
 
     #wc {
       width: 100%;
-      height: 100%;
+      height: 100%
+    }
+
+    /* ════ LANGUAGE — INLINE EXPANDING ════ */
+    #ls {
+      display: none
+    }
+
+    .lang-select-wrap {
+      position: relative;
+    }
+
+    .lang-select-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: clamp(10px, 2vw, 13px) clamp(12px, 2.5vw, 16px);
+      background: var(--cream);
+      border: 1.5px solid var(--ink);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--ink);
+      cursor: inherit;
+      outline: none;
+      transition: background .15s;
+      box-shadow: 2px 2px 0 var(--ink2);
+    }
+
+    .lang-select-btn:hover {
+      background: var(--cream2);
+    }
+
+    .lang-select-btn .lang-val {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lang-flag {
+      font-size: 16px;
+      line-height: 1;
+      cursor: inherit
+    }
+
+    .lang-badge {
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: 2px;
+      background: var(--ink);
+      color: var(--cream);
+      padding: 2px 7px;
+    }
+
+    .lang-badge.cs {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line2);
+    }
+
+    .lang-arrow {
+      font-family: var(--vt);
+      font-size: 18px;
+      color: var(--muted2);
+      transition: transform .22s cubic-bezier(.22, 1, .36, 1);
+      line-height: 1;
+    }
+
+    .lang-select-wrap.open .lang-arrow {
+      transform: rotate(180deg);
+    }
+
+    /* Inline dropdown — expands in flow, no fixed positioning */
+    .lang-inline-dropdown {
+      display: none;
+      border: 1.5px solid var(--ink);
+      border-top: none;
+      background: var(--paper);
+      box-shadow: 3px 3px 0 var(--ink2);
+      overflow: hidden;
+      /* Animate open */
+      max-height: 0;
+      transition: max-height 0.35s cubic-bezier(.22, 1, .36, 1);
+    }
+
+    .lang-inline-dropdown.open {
+      display: block;
+      max-height: 600px;
+    }
+
+    .lang-group-hdr {
+      padding: 6px clamp(12px, 2.5vw, 16px);
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+      background: var(--cream2);
+      border-bottom: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+    }
+
+    .lang-group-hdr:first-child {
+      border-top: none
+    }
+
+    .lang-opt {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: clamp(9px, 1.8vw, 11px) clamp(12px, 2.5vw, 16px);
+      border-bottom: 1px solid var(--line);
+      cursor: inherit;
+      transition: background .12s;
+    }
+
+    .lang-opt:last-child {
+      border-bottom: none
+    }
+
+    .lang-opt-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lang-opt-flag {
+      font-size: 15px;
+      line-height: 1
+    }
+
+    .lang-opt-name {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--muted2);
+    }
+
+    .lang-opt-native {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .lang-opt.selectable .lang-opt-name {
+      color: var(--ink)
+    }
+
+    .lang-opt.selectable:hover {
+      background: var(--cream2)
+    }
+
+    .lang-opt.active {
+      background: var(--cream2)
+    }
+
+    .lang-opt.active .lang-opt-name {
+      color: var(--ink)
+    }
+
+    .lang-tag-cs {
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      border: 1px solid var(--line2);
+      padding: 1px 6px;
+      white-space: nowrap;
+    }
+
+    .lang-tag-ok {
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: 2px;
+      background: var(--ink);
+      color: var(--cream);
+      padding: 2px 6px;
+      white-space: nowrap;
     }
 
     /* TEXTAREA */
     textarea {
       width: 100%;
-      background: var(--bg2);
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      color: var(--txt);
-      font-family: var(--sans);
-      font-size: clamp(14px, 2vw, 15px);
-      line-height: 1.65;
-      padding: clamp(11px, 2vw, 14px) clamp(12px, 2vw, 14px);
+      background: var(--cream2);
+      border: 1.5px solid var(--line);
+      color: var(--ink);
+      font-family: var(--body);
+      font-size: clamp(13px, 1.9vw, 15px);
+      line-height: 1.72;
+      padding: clamp(11px, 2.5vw, 14px);
       outline: none;
-      transition: border-color .2s, box-shadow .2s;
       resize: vertical;
-      min-height: clamp(100px, 14vw, 130px);
-      -webkit-appearance: none;
+      min-height: clamp(104px, 16vw, 132px);
+      transition: border-color .18s, box-shadow .18s
     }
 
     textarea::placeholder {
-      color: var(--txt3);
+      color: var(--muted);
+      font-style: italic
     }
 
     textarea:focus {
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 3px var(--ca12);
+      border-color: var(--ink);
+      box-shadow: 2px 2px 0 var(--ink)
     }
 
-    .cc {
+    .char-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 5px
+    }
+
+    .char-c {
       font-family: var(--mono);
-      font-size: clamp(8px, 1.2vw, 9px);
-      color: var(--txt3);
-      text-align: right;
-      margin-top: 4px;
+      font-size: 7.5px;
+      color: var(--muted2)
     }
 
-    .cc.warn {
-      color: var(--amber);
+    .char-c.warn {
+      color: #7a5a10
     }
 
-    .cc.over {
-      color: var(--red);
+    .char-c.over {
+      color: #7a1010
     }
 
     /* CLONE BUTTON */
-    .cbtn {
+    .clone-wrap {
+      padding: clamp(12px, 2.5vw, 16px)
+    }
+
+    .clone-btn {
       width: 100%;
-      padding: clamp(15px, 3vw, 20px) 20px;
-      border: none;
-      border-radius: var(--r);
-      background: linear-gradient(135deg, var(--cyan) 0%, var(--cyan2) 100%);
-      color: var(--bg);
-      font-family: var(--disp);
-      font-weight: 700;
-      font-size: clamp(20px, 4vw, 28px);
-      letter-spacing: clamp(3px, .8vw, 5px);
-      cursor: pointer;
+      padding: 0;
+      border: 2.5px solid var(--ink);
+      background: var(--ink);
+      color: var(--cream);
+      font-family: var(--vt);
+      font-size: clamp(28px, 7vw, 44px);
+      letter-spacing: 6px;
+      cursor: inherit;
       position: relative;
       overflow: hidden;
-      transition: transform .25s, box-shadow .25s;
       outline: none;
-      box-shadow: 0 4px 24px var(--ca30), 0 1px 0 rgba(255, 255, 255, .1) inset;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      min-height: clamp(58px, 9vw, 70px);
-      margin-top: 10px;
-    }
-
-    .cbtn::before {
-      content: '';
-      position: absolute;
-      top: -40%;
-      left: -60%;
-      width: 35%;
-      height: 180%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .16), transparent);
-      transform: skewX(-15deg);
-      transition: left .55s;
-    }
-
-    .cbtn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 36px var(--ca30);
-    }
-
-    .cbtn:hover::before {
-      left: 130%;
-    }
-
-    .cbtn:active {
-      transform: translateY(0);
-    }
-
-    .cbtn:disabled {
-      opacity: .38;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .cinn {
+      min-height: clamp(62px, 11vw, 72px);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 9px;
-      position: relative;
-      z-index: 1;
+      transition: background .18s, color .18s, box-shadow .18s, transform .18s;
+      text-transform: uppercase;
+      box-shadow: 4px 4px 0 var(--ink2)
     }
 
-    .pbar {
+    .clone-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, rgba(242, 237, 228, .04) 0px, rgba(242, 237, 228, .04) 1px, transparent 1px, transparent 3px);
+      pointer-events: none
+    }
+
+    .clone-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 70%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(242, 237, 228, .1), transparent);
+      transform: skewX(-20deg);
+      transition: left .6s cubic-bezier(.22, 1, .36, 1)
+    }
+
+    .clone-btn:hover {
+      background: var(--cream);
+      color: var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      transform: translate(-2px, -2px)
+    }
+
+    .clone-btn:hover::after {
+      left: 130%
+    }
+
+    .clone-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--ink2)
+    }
+
+    .clone-btn:disabled {
+      opacity: .25;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 4px 4px 0 var(--ink2)
+    }
+
+    .btn-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      z-index: 1
+    }
+
+    .prog {
       height: 3px;
       background: var(--line);
-      border-radius: 2px;
-      margin-top: 10px;
       overflow: hidden;
       display: none;
+      margin-top: 8px;
+      border: 1px solid var(--line2)
     }
 
-    .pbar.on {
-      display: block;
+    .prog.on {
+      display: block
     }
 
-    .pfill {
+    .prog-fill {
       height: 100%;
-      width: 0%;
-      border-radius: 2px;
-      background: linear-gradient(90deg, var(--cyan), var(--amber), var(--cyan));
-      background-size: 200% 100%;
-      animation: sh 1.8s linear infinite;
+      width: 0;
+      background: repeating-linear-gradient(90deg, var(--ink) 0px, var(--ink) 6px, var(--ink3) 6px, var(--ink3) 12px);
+      transition: width .3s
     }
 
-    .plbl {
-      font-family: var(--mono);
-      font-size: clamp(8px, 1.2vw, 9px);
+    .prog-lbl {
+      font-family: var(--vt);
+      font-size: 18px;
       letter-spacing: 2px;
-      color: var(--txt2);
+      color: var(--muted);
       text-align: center;
-      margin-top: 7px;
+      margin-top: 5px;
       display: none;
+      animation: cursorBlink 1s step-end infinite
     }
 
-    .plbl.on {
-      display: block;
-    }
-
-    /* SELECT / INPUT */
-    select,
-    input[type=text] {
-      width: 100%;
-      background: var(--bg2);
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      color: var(--txt);
-      font-family: var(--sans);
-      font-size: clamp(14px, 1.9vw, 14px);
-      line-height: 1.6;
-      padding: clamp(10px, 1.8vw, 12px) clamp(12px, 2vw, 14px);
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-      -webkit-appearance: none;
-    }
-
-    select::placeholder,
-    input::placeholder {
-      color: var(--txt3);
-    }
-
-    select:focus,
-    input[type=text]:focus {
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 3px var(--ca12);
-    }
-
-    select {
-      font-family: var(--mono);
-      font-size: clamp(12px, 1.6vw, 13px);
-      cursor: pointer;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2300e5c8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 32px;
-    }
-
-    select option {
-      background: var(--panel2);
-    }
-
-    /* CHIPS */
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .chip {
-      padding: clamp(6px, 1.2vw, 8px) clamp(10px, 2vw, 14px);
-      border-radius: 999px;
-      border: 1px solid var(--line2);
-      font-family: var(--mono);
-      font-size: clamp(9px, 1.3vw, 10px);
-      letter-spacing: 1px;
-      cursor: pointer;
-      color: var(--txt2);
-      background: var(--bg2);
-      transition: all .18s;
-      min-height: 32px;
-      display: flex;
-      align-items: center;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .chip:hover {
-      border-color: var(--cyan);
-      color: var(--cyan);
-    }
-
-    .chip.on {
-      border-color: var(--cyan);
-      color: var(--bg);
-      background: var(--cyan);
-      box-shadow: 0 2px 10px var(--ca30);
-    }
-
-    /* SLIDER */
-    .slrow {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-    }
-
-    .sledge {
-      font-family: var(--mono);
-      font-size: clamp(8px, 1.2vw, 9px);
-      color: var(--txt3);
-    }
-
-    .slval {
-      font-family: var(--mono);
-      font-size: clamp(10px, 1.5vw, 11px);
-      color: var(--cyan);
-      font-weight: 500;
-      min-width: 30px;
-      text-align: right;
-    }
-
-    input[type=range] {
-      flex: 1;
-      -webkit-appearance: none;
-      appearance: none;
-      height: 3px;
-      background: var(--line2);
-      border-radius: 2px;
-      outline: none;
-      cursor: pointer;
-    }
-
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: var(--cyan);
-      box-shadow: 0 0 8px var(--ca30);
-      cursor: pointer;
-      transition: transform .18s;
-    }
-
-    input[type=range]::-webkit-slider-thumb:hover {
-      transform: scale(1.3);
-    }
-
-    input[type=range]::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--cyan);
-      border: none;
-      box-shadow: 0 0 8px var(--ca30);
-      cursor: pointer;
+    .prog-lbl.on {
+      display: block
     }
 
     /* OUTPUT */
-    .out {
-      margin-top: var(--g);
+    .out-card {
       display: none;
-      animation: ru .45s ease both;
+      animation: cardIn .5s ease both;
+      margin-bottom: 9px
     }
 
-    .out.on {
-      display: block;
+    .out-card.on {
+      display: block
     }
 
-    .outbody {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--r);
-      overflow: hidden;
-    }
-
-    .prow {
+    .play-row {
       display: flex;
       align-items: center;
-      gap: clamp(10px, 2vw, 16px);
-      padding: clamp(14px, 2.5vw, 18px);
-      flex-wrap: wrap;
+      gap: 10px;
+      padding: clamp(12px, 2.5vw, 16px)
     }
 
-    .pbtn {
-      width: clamp(48px, 7.5vw, 58px);
-      height: clamp(48px, 7.5vw, 58px);
-      border-radius: 50%;
+    .play-btn {
+      width: clamp(44px, 8vw, 52px);
+      height: clamp(44px, 8vw, 52px);
       flex-shrink: 0;
-      border: 2px solid var(--cyan);
-      background: var(--ca12);
-      color: var(--cyan);
-      cursor: pointer;
+      border: 2px solid var(--ink);
+      background: transparent;
+      color: var(--ink);
+      cursor: inherit;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all .25s;
+      transition: all .18s;
       outline: none;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden
     }
 
-    .pbtn:hover,
-    .pbtn.on {
-      background: var(--cyan);
-      color: var(--bg);
-      box-shadow: 0 4px 18px var(--ca30);
-      transform: scale(1.05);
+    .play-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--ink);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .22s cubic-bezier(.22, 1, .36, 1)
     }
 
-    .vizw {
+    .play-btn:hover::before,
+    .play-btn.on::before {
+      transform: scaleX(1)
+    }
+
+    .play-btn:hover,
+    .play-btn.on {
+      color: var(--cream)
+    }
+
+    .play-btn svg {
+      position: relative;
+      z-index: 1
+    }
+
+    .viz-wrap {
       flex: 1;
-      height: clamp(48px, 7.5vw, 58px);
-      border-radius: 8px;
+      height: clamp(44px, 8vw, 52px);
       overflow: hidden;
-      background: var(--bg2);
-      border: 1px solid var(--line);
-      min-width: 70px;
+      background: var(--cream2);
+      border: 1.5px solid var(--ink);
+      min-width: 50px
     }
 
     #oc {
       width: 100%;
-      height: 100%;
+      height: 100%
     }
 
-    .arow {
-      display: flex;
-      gap: 7px;
-      flex-shrink: 0;
-    }
-
-    .abtn {
+    .save-btn {
       display: flex;
       align-items: center;
       gap: 5px;
-      padding: clamp(8px, 1.5vw, 10px) clamp(12px, 2vw, 16px);
-      border-radius: 8px;
-      border: 1px solid var(--line2);
-      background: var(--panel2);
-      color: var(--txt2);
+      padding: clamp(8px, 1.8vw, 10px) clamp(10px, 2.5vw, 14px);
+      border: 1.5px solid var(--ink);
+      background: transparent;
+      color: var(--ink);
       font-family: var(--mono);
-      font-size: clamp(9px, 1.3vw, 10px);
-      letter-spacing: 2px;
-      cursor: pointer;
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      cursor: inherit;
       transition: all .18s;
       text-decoration: none;
-      outline: none;
-      min-height: 36px;
-      touch-action: manipulation;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-transform: uppercase;
+      box-shadow: 2px 2px 0 var(--ink2)
     }
 
-    .abtn:hover {
-      border-color: var(--cyan);
-      color: var(--cyan);
-      background: var(--ca12);
+    .save-btn:hover {
+      background: var(--ink);
+      color: var(--cream)
     }
 
-    .abtn svg {
-      width: 10px;
-      height: 10px;
+    audio {
+      display: none
     }
 
     /* PROFILES */
-    .prof {
-      margin-top: var(--g);
-      animation: ru .6s .3s ease both;
-    }
-
-    .profbody {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--r);
-      overflow: hidden;
-    }
-
-    .profform {
+    .prof-form {
       display: flex;
-      gap: 8px;
-      padding: clamp(14px, 2.5vw, 18px);
-      padding-bottom: 0;
+      gap: 0;
+      margin-bottom: 10px;
+      border: 1.5px solid var(--ink);
+      overflow: hidden
     }
 
-    .profform input[type=text] {
+    .prof-inp {
       flex: 1;
+      background: var(--cream2);
+      border: none;
+      color: var(--ink);
       font-family: var(--mono);
-      font-size: clamp(12px, 1.6vw, 13px);
+      font-size: 11px;
+      padding: clamp(9px, 1.8vw, 11px) 11px;
+      outline: none
     }
 
-    .sbtn {
-      padding: 0 clamp(14px, 2.5vw, 20px);
-      border-radius: 9px;
-      border: 1px solid var(--cyan);
-      background: var(--ca12);
-      color: var(--cyan);
-      font-family: var(--mono);
-      font-size: clamp(9px, 1.3vw, 10px);
+    .prof-inp:focus {
+      background: var(--cream)
+    }
+
+    .prof-inp::placeholder {
+      color: var(--muted)
+    }
+
+    .prof-save {
+      padding: 0 clamp(11px, 2.5vw, 16px);
+      border: none;
+      border-left: 1.5px solid var(--ink);
+      background: var(--ink);
+      color: var(--cream);
+      font-family: var(--vt);
+      font-size: 20px;
       letter-spacing: 2px;
-      cursor: pointer;
+      cursor: inherit;
       transition: all .18s;
-      white-space: nowrap;
       outline: none;
-      min-height: clamp(40px, 5.5vw, 46px);
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
+      min-height: clamp(38px, 5.5vw, 42px);
       display: flex;
       align-items: center;
+      white-space: nowrap
     }
 
-    .sbtn:hover {
-      background: var(--cyan);
-      color: var(--bg);
-      box-shadow: 0 2px 12px var(--ca30);
+    .prof-save:hover {
+      background: var(--ink3)
     }
 
-    .plist {
+    .prof-chips {
       display: flex;
       flex-wrap: wrap;
-      gap: 7px;
-      padding: clamp(12px, 2vw, 16px);
+      gap: 5px
     }
 
-    .ptag {
+    .prof-chip {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: clamp(6px, 1.2vw, 8px) clamp(10px, 1.8vw, 13px);
-      border-radius: 999px;
-      border: 1px solid var(--line2);
-      background: var(--bg2);
+      gap: 5px;
+      padding: 4px 10px;
+      border: 1px solid var(--ink);
+      background: var(--cream2);
       font-family: var(--mono);
-      font-size: clamp(9px, 1.3vw, 10px);
-      color: var(--txt2);
-      cursor: pointer;
-      transition: all .18s;
-      min-height: 32px;
+      font-size: 8.5px;
+      color: var(--muted2);
+      cursor: inherit;
+      transition: all .15s;
+      box-shadow: 2px 2px 0 var(--line)
     }
 
-    .ptag:hover,
-    .ptag.on {
-      border-color: var(--cyan);
-      color: var(--cyan);
-      background: var(--ca12);
+    .prof-chip:hover,
+    .prof-chip.on {
+      border-color: var(--ink);
+      color: var(--ink);
+      background: var(--cream);
+      box-shadow: 2px 2px 0 var(--ink)
     }
 
-    .pdel {
-      opacity: .28;
-      cursor: pointer;
-      font-size: 13px;
-      line-height: 1;
-      transition: opacity .15s;
-      padding: 3px;
+    .prof-x {
+      opacity: .3;
+      font-size: 12px;
+      transition: opacity .12s;
+      line-height: 1
     }
 
-    .ptag:hover .pdel {
-      opacity: 1;
-      color: var(--red);
+    .prof-chip:hover .prof-x {
+      opacity: .6
     }
 
-    .noprof {
+    .no-prof {
       font-family: var(--mono);
-      font-size: clamp(9px, 1.3vw, 10px);
-      color: var(--txt3);
-      letter-spacing: 1px;
+      font-size: 8.5px;
+      color: var(--muted);
+      font-style: italic
     }
 
-    /* SEC LABEL */
-    .slabel {
-      font-family: var(--mono);
-      font-size: clamp(8px, 1.2vw, 9px);
+    /* FOOTER */
+    footer {
+      margin-top: clamp(20px, 4vw, 30px);
+      border-top: 2px solid var(--ink);
+      padding-top: clamp(14px, 3vw, 20px);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 10px
+    }
+
+    .ft-name {
+      font-family: var(--vt);
+      font-size: clamp(22px, 4vw, 30px);
       letter-spacing: 3px;
-      color: var(--cyan);
+      color: var(--ink);
       text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
+      line-height: 1
     }
 
-    .slabel::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--line);
+    .ft-role {
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: 3px;
+      color: var(--muted2);
+      margin-top: 3px;
+      text-transform: uppercase
+    }
+
+    .ft-mail {
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .5px;
+      color: var(--muted);
+      margin-top: 3px;
+      text-decoration: none;
+      display: inline-block;
+      transition: color .18s
+    }
+
+    .ft-mail:hover {
+      color: var(--ink)
+    }
+
+    .ft-right {
+      text-align: right
+    }
+
+    .ft-bars {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 22px;
+      justify-content: flex-end
+    }
+
+    .ft-bar {
+      width: 7px;
+      background: var(--ink);
+      animation: ftBar 1.6s ease-in-out infinite alternate
+    }
+
+    .ft-bar:nth-child(1) {
+      height: 7px;
+      animation-delay: 0s
+    }
+
+    .ft-bar:nth-child(2) {
+      height: 14px;
+      animation-delay: .18s
+    }
+
+    .ft-bar:nth-child(3) {
+      height: 22px;
+      animation-delay: .36s
+    }
+
+    .ft-bar:nth-child(4) {
+      height: 10px;
+      animation-delay: .54s
+    }
+
+    .ft-bar:nth-child(5) {
+      height: 18px;
+      animation-delay: .72s
+    }
+
+    @keyframes ftBar {
+      from {
+        transform: scaleY(.3)
+      }
+
+      to {
+        transform: scaleY(1)
+      }
+    }
+
+    .ft-copy {
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-top: 4px
     }
 
     /* TOAST */
     .toast {
       position: fixed;
-      bottom: clamp(14px, 3vw, 26px);
-      right: clamp(14px, 3vw, 26px);
-      z-index: 200;
-      background: var(--panel2);
-      border: 1px solid var(--line2);
-      border-radius: 11px;
-      padding: clamp(10px, 2vw, 13px) clamp(14px, 2.5vw, 18px);
-      font-family: var(--mono);
-      font-size: clamp(10px, 1.6vw, 11px);
-      color: var(--txt);
-      transform: translateY(52px);
+      bottom: clamp(14px, 3vw, 20px);
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      z-index: 10000;
+      background: var(--ink);
+      border: 1.5px solid var(--ink2);
+      padding: 9px clamp(16px, 3vw, 22px);
+      font-family: var(--vt);
+      font-size: 20px;
+      color: var(--cream);
       opacity: 0;
-      transition: all .38s cubic-bezier(.34, 1.56, .64, 1);
-      max-width: min(290px, calc(100vw - 28px));
-      box-shadow: 0 10px 32px rgba(0, 0, 0, .5);
+      transition: all .35s cubic-bezier(.34, 1.56, .64, 1);
+      white-space: nowrap;
+      box-shadow: 3px 3px 0 var(--ink3);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 9px;
+      max-width: calc(100vw - 28px);
+      letter-spacing: 2px
     }
 
     .toast.on {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .toast.ok {
-      border-color: rgba(34, 212, 122, .35);
-      color: var(--green);
+      transform: translateX(-50%) translateY(0);
+      opacity: 1
     }
 
     .toast.er {
-      border-color: rgba(255, 75, 110, .35);
-      color: var(--red);
+      background: #3a1010;
+      border-color: #2a0c0c
     }
 
-    @media(max-width:480px) {
-      .profform {
-        flex-direction: column;
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    @keyframes cursorBlink {
+
+      0%,
+      100% {
+        opacity: 1
       }
 
-      .sbtn {
-        width: 100%;
-        min-height: 46px;
-        justify-content: center;
+      50% {
+        opacity: 0
       }
+    }
 
-      .chips {
-        gap: 5px;
-      }
-
-      .chip {
-        padding: 7px 11px;
-        font-size: 9px;
-      }
+    textarea:focus::placeholder {
+      animation: cursorBlink .8s step-end infinite
     }
   </style>
 </head>
 
 <body>
-  <div class="g1"></div>
-  <div class="g2"></div>
-  <div class="g3"></div>
+
+  <!-- INTRO SPLASH -->
+  <div id="intro">
+    <canvas id="intro-bg"></canvas>
+    <div class="intro-grain"></div>
+    <div class="intro-corner tl"></div>
+    <div class="intro-corner tr"></div>
+    <div class="intro-corner bl"></div>
+    <div class="intro-corner br"></div>
+    <div class="intro-hline top"></div>
+    <div class="intro-hline bot"></div>
+    <div class="intro-side left">VOXAI · AUDIO ENGINE</div>
+    <div class="intro-side right">v2.0 · 2025</div>
+
+    <div class="intro-content">
+      <div class="intro-eyebrow">Voice Clone Studio · Est. 2025</div>
+
+      <div class="vinyl-stage" id="vinyl-stage">
+        <div class="vinyl-ring"></div>
+        <div class="vinyl-ring"></div>
+        <div class="vinyl-ring"></div>
+        <div class="vinyl-disc" id="intro-disc"></div>
+        <div class="vinyl-sheen"></div>
+        <canvas class="vinyl-wave-cv" id="intro-vinyl-cv"></canvas>
+        <div class="vinyl-label">
+          <div class="vinyl-label-logo">VOX</div>
+          <div class="vinyl-label-sub">AI</div>
+          <div class="vinyl-hole"></div>
+        </div>
+        <div class="vinyl-arm"></div>
+      </div>
+
+      <div class="intro-logo">VOXAI<div class="intro-logo-line"></div>
+      </div>
+      <div class="intro-tagline">Sound Like Anyone — Instantly</div>
+      <canvas id="intro-wave-cv"></canvas>
+
+      <div class="intro-loader">
+        <div class="intro-progbar">
+          <div class="intro-progfill" id="intro-fill"></div>
+        </div>
+        <div class="intro-progstatus">
+          <div class="intro-status" id="intro-status-txt">INITIALISING AUDIO ENGINE_</div>
+          <div class="intro-pct" id="intro-pct-txt">0%</div>
+        </div>
+      </div>
+      <div class="intro-enter" id="intro-enter">[ PRESS ANYWHERE TO ENTER ]</div>
+    </div>
+
+    <div class="intro-bottom">
+      <div class="intro-bottom-txt">VOXAI · VOICE CLONE STUDIO</div>
+      <div class="intro-eqbars">
+        <div class="intro-eqbar"></div>
+        <div class="intro-eqbar"></div>
+        <div class="intro-eqbar"></div>
+        <div class="intro-eqbar"></div>
+        <div class="intro-eqbar"></div>
+        <div class="intro-eqbar"></div>
+        <div class="intro-eqbar"></div>
+      </div>
+      <div class="intro-bottom-txt">EST. 2025</div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <canvas id="bg-canvas"></canvas>
+
   <div class="shell">
+    <nav>
+      <a class="logo" href="#">
+        <div class="logo-name">VOXAI</div>
+        <div class="logo-sep"></div>
+        <div class="logo-sub">Voice Clone Studio</div>
+      </a>
+      <div class="nav-right">EST.2025</div>
+    </nav>
 
-    <!-- TOPBAR -->
-    <header class="topbar">
-      <div class="brand">
-        <div class="bico"><svg viewBox="0 0 24 24">
-            <path
-              d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zm-1 13.93V20H9v2h6v-2h-2v-3.07A7 7 0 0 0 19 10h-2a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.93z" />
-          </svg></div>
-        <div>
-          <div class="bname">VOX<b>AI</b></div>
-          <div class="btag">Voice Cloning Studio</div>
-        </div>
-      </div>
-      <div class="stat">
-        <div class="sdot" id="sd"></div>
-        <span id="st">CONNECTING</span>
-      </div>
-    </header>
-
-    <!-- HERO -->
     <div class="hero">
-      <div class="hkick">Powered by XTTS v2</div>
-      <h1 class="hh">Clone Any <em>Voice</em></h1>
-      <p class="hp">Pick a voice → type text → hit Clone. Three steps, any language.</p>
-      <div class="steps">
-        <div class="step">
-          <div class="stn">1</div><span>Voice Source</span>
+      <div class="hero-label">Human-Quality Voice Cloning</div>
+      <canvas id="hero-wave"></canvas>
+      <h1 class="hero-h">Sound Like Anyone</h1>
+      <p class="hero-p">Upload a voice · type your text · hear it reborn in seconds.</p>
+    </div>
+
+    <div class="rule">
+      <div class="rule-line"></div>
+      <div class="rule-lbl">Begin</div>
+      <div class="rule-line"></div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step">
+      <div class="step-head">
+        <div class="sn">1</div>
+        <div class="st">Voice Reference</div>
+        <div class="sd" id="src-done">[ READY ]</div>
+      </div>
+      <div class="step-body">
+        <div class="tabs">
+          <button class="tab on" id="tab-up" type="button" onclick="switchTab('up')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <span>Upload</span>
+          </button>
+          <button class="tab" id="tab-rec" type="button" onclick="switchTab('rec')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M9 22h6" />
+            </svg>
+            <span>Record Live</span>
+          </button>
         </div>
-        <div class="stsp"></div>
-        <div class="step">
-          <div class="stn">2</div><span>Text &amp; Clone</span>
+        <div class="panel on" id="panel-up">
+          <div class="dz" id="dz">
+            <input type="file" id="fi" accept=".wav,.mp3,.ogg,.webm,.m4a,.flac" />
+            <svg class="dz-wv" viewBox="0 0 90 32" preserveAspectRatio="none">
+              <path class="dz-wline"
+                d="M0,16 C5,16 7,5 9,5 C11,5 13,27 15,27 C17,27 19,7 21,3 C23,-1 25,29 27,29 C29,29 31,9 33,5 C35,1 37,27 39,27 C41,27 43,7 45,3 C47,-1 49,29 51,29 C53,29 55,11 57,7 C59,3 61,25 63,25 C65,25 67,9 69,9 C71,9 73,21 75,21 C77,21 82,16 90,16" />
+            </svg>
+            <div class="dz-t">Drop audio or <strong>Click to Browse</strong></div>
+            <div class="dz-hint">WAV · MP3 · OGG · M4A · FLAC — 15 to 30 seconds recommended</div>
+            <div class="file-ok" id="fcho">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span id="fn">—</span>
+            </div>
+          </div>
+          <div class="rbars" id="rq">
+            <div class="rbars-lbl">REFERENCE ANALYSED</div>
+            <div class="rbars-row" id="rqb"></div>
+          </div>
         </div>
-        <div class="stsp"></div>
-        <div class="step">
-          <div class="stn">3</div><span>Options</span>
+        <div class="panel" id="panel-rec">
+          <div class="rec-center">
+            <div class="disc-wrap" id="disc-wrap" onclick="toggleRec()">
+              <div class="disc-ring"></div>
+              <div class="disc-ring"></div>
+              <div class="disc-ring"></div>
+              <div class="disc" id="disc"></div>
+              <div class="disc-sheen"></div>
+              <canvas class="disc-wave-canvas" id="disc-wc"></canvas>
+              <div class="disc-label">
+                <div class="disc-hole" id="disc-hole"></div>
+                <div class="disc-label-txt" id="disc-txt">REC</div>
+              </div>
+              <button class="rec-btn" id="rb" type="button" aria-label="Toggle recording"></button>
+            </div>
+            <div class="rec-timer" id="rtimer">0:00</div>
+            <div class="rec-lbl" id="rl">[ TAP DISC TO RECORD ]</div>
+            <div class="rec-tip">15–30 seconds · quiet room · speak naturally</div>
+            <div class="wavebox" id="ww"><canvas id="wc"></canvas></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- DASHBOARD -->
-    <div class="dash">
-
-      <!-- PANEL 1: Voice Source -->
-      <div class="panel pv">
-        <div class="ph">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M9 22h6" />
-          </svg>
-          ① Voice Source
-        </div>
-        <div class="pb">
-          <div class="fg">
-            <div class="fl">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              Upload Audio
-            </div>
-            <div class="dz" id="dz">
-              <input type="file" id="fi" accept=".wav,.mp3,.ogg,.webm,.m4a" />
-              <div class="dzic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg></div>
-              <div class="dzt">Drop or <strong>click to browse</strong></div>
-              <div class="dzh">WAV · MP3 · OGG · M4A</div>
-              <div class="fcho" id="fcho">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                <span id="fn">—</span>
-              </div>
-            </div>
-          </div>
-          <div class="or"><span>or record live</span></div>
-          <div class="fg" style="margin-bottom:0">
-            <div class="rec">
-              <button class="rring" id="rb" type="button">
-                <div class="rdot"></div>
-              </button>
-              <div>
-                <div class="rlbl" id="rl">CLICK TO RECORD</div>
-                <div class="rtip">5–20s ideal</div>
-              </div>
-            </div>
-            <div class="ww" id="ww"><canvas id="wc"></canvas></div>
-          </div>
+    <!-- STEP 2 -->
+    <div class="step">
+      <div class="step-head">
+        <div class="sn">2</div>
+        <div class="st">Text to Synthesise</div>
+      </div>
+      <div class="step-body">
+        <textarea id="ti" maxlength="500"
+          placeholder="Type what you want to say in the cloned voice…&#10;&#10;Natural sentences with punctuation produce the best timing and pacing."></textarea>
+        <div class="char-row">
+          <div class="char-c" id="cc">0 / 500</div>
         </div>
       </div>
+    </div>
 
-      <!-- PANEL 2: Text + Clone Button (center, highlighted) -->
-      <div class="panel ps">
-        <div class="ph">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-          ② Text &amp; Clone
-        </div>
-        <div class="pb" style="gap:0;">
-          <div class="fg" style="flex:1;display:flex;flex-direction:column;">
-            <div class="fl">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="17" y1="10" x2="3" y2="10" />
-                <line x1="21" y1="6" x2="3" y2="6" />
-                <line x1="21" y1="14" x2="3" y2="14" />
-                <line x1="17" y1="18" x2="3" y2="18" />
-              </svg>
-              Text to Synthesize
+    <!-- STEP 3 — LANGUAGE (inline expanding dropdown) -->
+    <div class="step">
+      <div class="step-head">
+        <div class="sn">3</div>
+        <div class="st">Language</div>
+      </div>
+      <div class="step-body">
+        <select id="ls" style="display:none">
+          <option value="en">English</option>
+        </select>
+
+        <div class="lang-select-wrap" id="lang-wrap">
+          <!-- Trigger button -->
+          <button class="lang-select-btn" type="button" onclick="toggleLangDropdown()" id="lang-btn">
+            <div class="lang-val">
+              <span class="lang-flag" id="lang-flag">🇬🇧</span>
+              <span id="lang-display">English</span>
+              <span class="lang-badge" id="lang-status-badge">AVAILABLE</span>
             </div>
-            <textarea id="ti" placeholder="Type what you want to say in the cloned voice…" maxlength="500"
-              style="flex:1;min-height:clamp(90px,12vw,140px);"></textarea>
-            <div class="cc" id="cc">0 / 500</div>
-          </div>
-          <!-- CLONE BUTTON RIGHT BELOW TEXT -->
-          <button class="cbtn" id="cb" type="button">
-            <div class="cinn">
-              <svg id="ci" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
-                <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              </svg>
-              <span id="ct">CLONE VOICE</span>
-            </div>
+            <span class="lang-arrow">▼</span>
           </button>
-          <div class="pbar" id="pb">
-            <div class="pfill" id="pf"></div>
+
+          <!-- Inline expanding list — sits in normal document flow -->
+          <div class="lang-inline-dropdown" id="lang-dropdown">
+
+            <div class="lang-group-hdr">Available Now</div>
+            <div class="lang-opt selectable active" data-val="en" data-flag="🇬🇧" onclick="selectLang(this)">
+              <div class="lang-opt-left">
+                <span class="lang-opt-flag">🇬🇧</span>
+                <div>
+                  <div class="lang-opt-name">English</div>
+                  <div class="lang-opt-native">English</div>
+                </div>
+              </div>
+              <span class="lang-tag-ok">AVAILABLE</span>
+            </div>
+
+            <div class="lang-group-hdr">South Asia</div>
+            <div class="lang-opt" data-val="" data-flag="🇮🇳" onclick="selectLang(this)">
+              <div class="lang-opt-left">
+                <span class="lang-opt-flag">🇮🇳</span>
+                <div>
+                  <div class="lang-opt-name">Tamil</div>
+                  <div class="lang-opt-native">தமிழ்</div>
+                </div>
+              </div>
+              <span class="lang-tag-cs">COMING SOON</span>
+            </div>
+            <div class="lang-opt" data-val="" data-flag="🇮🇳" onclick="selectLang(this)">
+              <div class="lang-opt-left">
+                <span class="lang-opt-flag">🇮🇳</span>
+                <div>
+                  <div class="lang-opt-name">Hindi</div>
+                  <div class="lang-opt-native">हिन्दी</div>
+                </div>
+              </div>
+              <span class="lang-tag-cs">COMING SOON</span>
+            </div>
+            <div class="lang-opt" data-val="" data-flag="🇮🇳" onclick="selectLang(this)">
+              <div class="lang-opt-left">
+                <span class="lang-opt-flag">🇮🇳</span>
+                <div>
+                  <div class="lang-opt-name">Telugu</div>
+                  <div class="lang-opt-native">తెలుగు</div>
+                </div>
+              </div>
+              <span class="lang-tag-cs">COMING SOON</span>
+            </div>
+
+            <div class="lang-group-hdr">Europe</div>
+            <div class="lang-opt" data-val="" data-flag="🇪🇸" onclick="selectLang(this)">
+              <div class="lang-opt-left">
+                <span class="lang-opt-flag">🇪🇸</span>
+                <div>
+                  <div class="lang-opt-name">Spanish</div>
+                  <div class="lang-opt-native">Español</div>
+                </div>
+              </div>
+              <span class="lang-tag-cs">COMING SOON</span>
+            </div>
+            <div class="lang-opt" data-val="" data-flag="🇫🇷" onclick="selectLang(this)">
+              <div class="lang-opt-left">
+                <span class="lang-opt-flag">🇫🇷</span>
+                <div>
+                  <div class="lang-opt-name">French</div>
+                  <div class="lang-opt-native">Français</div>
+                </div>
+              </div>
+              <span class="lang-tag-cs">COMING SOON</span>
+            </div>
+
+            <div class="lang-group-hdr">Asia Pacific</div>
+            <div class="lang-opt" data-val="" data-flag="🇯🇵" onclick="selectLang(this)">
+              <div class="lang-opt-left">
+                <span class="lang-opt-flag">🇯🇵</span>
+                <div>
+                  <div class="lang-opt-name">Japanese</div>
+                  <div class="lang-opt-native">日本語</div>
+                </div>
+              </div>
+              <span class="lang-tag-cs">COMING SOON</span>
+            </div>
+
           </div>
-          <div class="plbl" id="plbl">SYNTHESIZING…</div>
         </div>
       </div>
+    </div>
 
-      <!-- PANEL 3: Options -->
-      <div class="panel po">
-        <div class="ph">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="12" cy="12" r="3" />
-            <path
-              d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" />
-          </svg>
-          ③ Options
+    <!-- STEP 4 -->
+    <div class="step">
+      <div class="clone-wrap">
+        <button class="clone-btn" id="cb" type="button">
+          <div class="btn-inner">
+            <svg id="ci" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2">
+              <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            </svg>
+            <span id="ct">CLONE VOICE</span>
+          </div>
+        </button>
+        <div class="prog" id="pb">
+          <div class="prog-fill" id="pf"></div>
         </div>
-        <div class="pb">
-          <div class="fg">
-            <div class="fl">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="2" y1="12" x2="22" y2="12" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
-              Language
-            </div>
-            <select id="ls">
-              <option value="en">🇺🇸 English</option>
-              <option value="hi">🇮🇳 Hindi</option>
-              <option value="es">🇪🇸 Spanish</option>
-              <option value="fr">🇫🇷 French</option>
-              <option value="de">🇩🇪 German</option>
-              <option value="it">🇮🇹 Italian</option>
-              <option value="pt">🇧🇷 Portuguese</option>
-              <option value="pl">🇵🇱 Polish</option>
-              <option value="tr">🇹🇷 Turkish</option>
-              <option value="ru">🇷🇺 Russian</option>
-              <option value="nl">🇳🇱 Dutch</option>
-              <option value="cs">🇨🇿 Czech</option>
-              <option value="ar">🇸🇦 Arabic</option>
-              <option value="zh-cn">🇨🇳 Chinese</option>
-              <option value="ja">🇯🇵 Japanese</option>
-              <option value="ko">🇰🇷 Korean</option>
-            </select>
-          </div>
-          <div class="fg">
-            <div class="fl">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                <line x1="9" y1="9" x2="9.01" y2="9" />
-                <line x1="15" y1="9" x2="15.01" y2="9" />
-              </svg>
-              Emotion
-            </div>
-            <div class="chips">
-              <button class="chip on" data-e="neutral" type="button">Neutral</button>
-              <button class="chip" data-e="happy" type="button">Happy</button>
-              <button class="chip" data-e="sad" type="button">Sad</button>
-              <button class="chip" data-e="energetic" type="button">Energetic</button>
-              <button class="chip" data-e="serious" type="button">Serious</button>
-            </div>
-          </div>
-          <div class="fg" style="margin-bottom:0">
-            <div class="fl">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="13 17 18 12 13 7" />
-                <polyline points="6 17 11 12 6 7" />
-              </svg>
-              Speed
-            </div>
-            <div class="slrow">
-              <span class="sledge">0.5×</span>
-              <input type="range" id="ss" min="0.5" max="2.0" step="0.1" value="1.0" />
-              <span class="sledge">2.0×</span>
-              <span class="slval" id="sv">1.0×</span>
-            </div>
-          </div>
-        </div>
+        <div class="prog-lbl" id="plbl">SYNTHESISING_</div>
       </div>
-
-    </div><!-- /dash -->
+    </div>
 
     <!-- OUTPUT -->
-    <div class="out" id="os">
-      <div class="slabel">Synthesized Output</div>
-      <div class="outbody">
-        <div class="ph">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-          </svg>
-          Playback
-        </div>
-        <div class="prow">
-          <button class="pbtn" id="play" type="button">
-            <svg id="pico" width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5 3 19 12 5 21 5 3" />
-            </svg>
-          </button>
-          <div class="vizw"><canvas id="oc"></canvas></div>
-          <div class="arow">
-            <a class="abtn" id="dl" download="cloned_voice.wav">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              SAVE
-            </a>
-          </div>
-        </div>
-        <audio id="ae" style="display:none"></audio>
+    <div class="out-card step" id="os">
+      <div class="step-head">
+        <div class="sn">►</div>
+        <div class="st">Cloned Voice</div>
       </div>
+      <div class="play-row">
+        <button class="play-btn" id="play" type="button">
+          <svg id="pico" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+        </button>
+        <div class="viz-wrap"><canvas id="oc"></canvas></div>
+        <a class="save-btn" id="dl" download="cloned_voice.wav">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          SAVE WAV
+        </a>
+      </div>
+      <audio id="ae"></audio>
     </div>
 
     <!-- PROFILES -->
-    <div class="prof">
-      <div class="slabel">Voice Profiles</div>
-      <div class="profbody">
-        <div class="ph">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          Saved Profiles
+    <div class="step">
+      <div class="step-head">
+        <div class="sn">◈</div>
+        <div class="st">Voice Profiles</div>
+      </div>
+      <div class="step-body">
+        <div class="prof-form">
+          <input class="prof-inp" type="text" id="pn" placeholder="profile-name_" />
+          <button class="prof-save" id="sp" type="button">SAVE</button>
         </div>
-        <div class="profform">
-          <input type="text" id="pn" placeholder="profile-name" />
-          <button class="sbtn" id="sp" type="button">SAVE</button>
-        </div>
-        <div class="plist" id="pl2"><span class="noprof">No profiles saved yet</span></div>
+        <div class="prof-chips" id="pl2"><span class="no-prof">no profiles saved yet_</span></div>
       </div>
     </div>
 
-  </div><!-- /shell -->
+    <footer>
+      <div class="ft-left">
+        <div class="ft-name">Deepak Roshan</div>
+        <div class="ft-role">AI Engineer</div>
+        <a class="ft-mail" href="mailto:deepakroshan380@gmail.com">deepakroshan380@gmail.com</a>
+      </div>
+      <div class="ft-right">
+        <div class="ft-bars">
+          <div class="ft-bar"></div>
+          <div class="ft-bar"></div>
+          <div class="ft-bar"></div>
+          <div class="ft-bar"></div>
+          <div class="ft-bar"></div>
+        </div>
+        <div class="ft-copy">VOXAI · 2025</div>
+      </div>
+    </footer>
+  </div>
+
   <div class="toast" id="toast"><span id="tico"></span><span id="tmsg"></span></div>
 
   <script>
+    /* ═══════════════════════════════════
+       INTRO — RETRO VINYL SPLASH
+       ═══════════════════════════════════ */
+    (function () {
+      const intro = document.getElementById('intro');
+      const bgCv = document.getElementById('intro-bg');
+      const bgCx = bgCv.getContext('2d');
+      const waveCv = document.getElementById('intro-wave-cv');
+      const waveCx = waveCv.getContext('2d');
+      const vinylCv = document.getElementById('intro-vinyl-cv');
+      const fillEl = document.getElementById('intro-fill');
+      const statusEl = document.getElementById('intro-status-txt');
+      const pctEl = document.getElementById('intro-pct-txt');
+      const enterEl = document.getElementById('intro-enter');
+
+      let W, H, t = 0, entered = false, loaded = false;
+
+      function resize() { W = bgCv.width = window.innerWidth; H = bgCv.height = window.innerHeight; }
+      resize(); window.addEventListener('resize', resize);
+
+      const particles = Array.from({ length: 50 }, () => ({
+        x: Math.random(), y: Math.random(),
+        vx: (Math.random() - .5) * .0005, vy: (Math.random() - .5) * .0005,
+        r: Math.random() * 1.2 + .3, a: Math.random() * .3 + .04
+      }));
+      const bgCols = Math.max(60, Math.floor(window.innerWidth / 9));
+      const bgBars = Array.from({ length: bgCols }, () => ({
+        h: .04, target: .04, phase: Math.random() * Math.PI * 2, amp: .03 + Math.random() * .12
+      }));
+
+      function drawBg() {
+        bgCx.clearRect(0, 0, W, H);
+        const bw = W / bgBars.length;
+        bgBars.forEach((b, i) => {
+          b.target = Math.max(.005, Math.min(.28, .05 + Math.sin(t * 1.1 + b.phase) * b.amp + Math.sin(t * .28 + i * .22) * .03));
+          b.h += (b.target - b.h) * .07;
+          const bh = b.h * H * .65, x = i * bw;
+          bgCx.fillStyle = `rgba(160,148,130,${.03 + b.h * .07})`;
+          bgCx.fillRect(x + .5, H - bh, bw - 1, bh);
+        });
+        bgCx.save(); bgCx.strokeStyle = 'rgba(180,168,150,.04)'; bgCx.lineWidth = .5;
+        const gx = 80, gy = 60;
+        for (let x = 0; x < W; x += gx) { bgCx.beginPath(); bgCx.moveTo(x, 0); bgCx.lineTo(x, H); bgCx.stroke(); }
+        for (let y = 0; y < H; y += gy) { bgCx.beginPath(); bgCx.moveTo(0, y); bgCx.lineTo(W, y); bgCx.stroke(); }
+        bgCx.restore();
+        bgCx.save(); bgCx.strokeStyle = 'rgba(160,148,130,.12)'; bgCx.lineWidth = 1.2; bgCx.beginPath();
+        for (let i = 0; i <= W; i++) {
+          const e = .5 + .5 * Math.sin(i * .025 + t * .2);
+          const y = H * .48 + (Math.sin(i * .11 + t * .85) * .5 + Math.sin(i * .26 + t * .55) * .28 + Math.sin(i * .055 + t * .35) * .22 + Math.sin(i * .42 + t * 1.1) * .1) * e * (H * .08);
+          i === 0 ? bgCx.moveTo(i, y) : bgCx.lineTo(i, y);
+        } bgCx.stroke(); bgCx.restore();
+        particles.forEach(p => {
+          p.x = (p.x + p.vx + 1) % 1; p.y = (p.y + p.vy + 1) % 1;
+          bgCx.beginPath(); bgCx.arc(p.x * W, p.y * H, p.r, 0, Math.PI * 2);
+          bgCx.fillStyle = `rgba(200,190,175,${p.a})`; bgCx.fill();
+        });
+      }
+
+      const waveHarmonics = [
+        { f: .13, a: .55, s: .85, p: 0 }, { f: .27, a: .28, s: .7, p: 1.5 },
+        { f: .052, a: .2, s: .48, p: 2.9 }, { f: .46, a: .1, s: 1.1, p: .6 }
+      ];
+      function drawWave() {
+        const W2 = waveCv.width = waveCv.offsetWidth || 420;
+        const H2 = waveCv.height = waveCv.offsetHeight || 50;
+        waveCx.clearRect(0, 0, W2, H2);
+        const mid = H2 / 2;
+        waveCx.save(); waveCx.strokeStyle = 'rgba(237,233,224,.04)'; waveCx.lineWidth = 10; waveCx.beginPath();
+        for (let i = 0; i <= W2; i++) {
+          let y = 0; waveHarmonics.forEach(h => { y += Math.sin(i * h.f + t * h.s + h.p) * h.a; });
+          const e = .55 + .45 * Math.sin(i * .018 + t * .28);
+          i === 0 ? waveCx.moveTo(i, mid + y * e * mid * .82) : waveCx.lineTo(i, mid + y * e * mid * .82);
+        } waveCx.stroke(); waveCx.restore();
+        waveCx.save(); waveCx.strokeStyle = 'rgba(237,233,224,.7)'; waveCx.lineWidth = 1.8; waveCx.beginPath();
+        for (let i = 0; i <= W2; i++) {
+          let y = 0; waveHarmonics.forEach(h => { y += Math.sin(i * h.f + t * h.s + h.p) * h.a; });
+          const e = .55 + .45 * Math.sin(i * .018 + t * .28);
+          i === 0 ? waveCx.moveTo(i, mid + y * e * mid * .82) : waveCx.lineTo(i, mid + y * e * mid * .82);
+        } waveCx.stroke(); waveCx.restore();
+      }
+
+      function drawVinylWave() {
+        const stage = document.getElementById('vinyl-stage');
+        const size = vinylCv.width = vinylCv.height = stage.offsetWidth || 240;
+        const vc = vinylCv.getContext('2d');
+        vc.clearRect(0, 0, size, size);
+        const R = size / 2, inner = R * .19, outer = R * .44;
+        const bars = 52;
+        for (let i = 0; i < bars; i++) {
+          const angle = (i / bars) * Math.PI * 2 - Math.PI / 2;
+          const phase = i * .25 + t * 2.4 + Math.sin(t * .6 + i * .09);
+          const val = .3 + .65 * Math.abs(Math.sin(phase));
+          const bLen = (outer - inner) * val;
+          const x1 = R + Math.cos(angle) * inner, y1 = R + Math.sin(angle) * inner;
+          const x2 = R + Math.cos(angle) * (inner + bLen), y2 = R + Math.sin(angle) * (inner + bLen);
+          vc.strokeStyle = `rgba(237,233,224,${.15 + val * .45})`;
+          vc.lineWidth = 2.2; vc.lineCap = 'round';
+          vc.beginPath(); vc.moveTo(x1, y1); vc.lineTo(x2, y2); vc.stroke();
+        }
+      }
+
+      function animate() {
+        requestAnimationFrame(animate); t += .019;
+        drawBg(); drawWave(); drawVinylWave();
+      }
+      animate();
+
+      const msgs = ['INITIALISING AUDIO ENGINE_', 'LOADING VOICE MODELS_', 'CALIBRATING WAVEFORMS_', 'CONFIGURING CLONE CORE_', 'READY TO TRANSMIT_'];
+      let mIdx = 0;
+      function runLoader() {
+        let pct = 0;
+        const iv = setInterval(() => {
+          pct += Math.random() * 3.5 + .8;
+          if (pct >= 100) { pct = 100; clearInterval(iv); onDone(); }
+          fillEl.style.width = Math.min(pct, 100) + '%';
+          pctEl.textContent = Math.floor(Math.min(pct, 100)) + '%';
+          const ni = Math.floor((pct / 100) * msgs.length);
+          if (ni !== mIdx && ni < msgs.length) { mIdx = ni; statusEl.textContent = msgs[mIdx]; }
+        }, 55);
+      }
+      setTimeout(runLoader, 1200);
+
+      function onDone() {
+        loaded = true; statusEl.textContent = 'SYSTEMS ONLINE_'; pctEl.textContent = '100%';
+        fillEl.style.width = '100%';
+      }
+
+      function doEnter() {
+        if (entered) return; entered = true;
+        enterEl.classList.add('hidden');
+        intro.classList.add('exit');
+        setTimeout(() => { intro.style.display = 'none'; }, 1100);
+      }
+      intro.addEventListener('click', () => { if (loaded) doEnter(); });
+      setTimeout(doEnter, 9000);
+    })();
+
+    /* BG CANVAS */
+    (function () {
+      const cv = document.getElementById('bg-canvas'), cx = cv.getContext('2d');
+      let W, H;
+      function resize() { W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+      resize(); window.addEventListener('resize', resize);
+      const COLS = Math.floor(window.innerWidth / 14);
+      const bars = Array.from({ length: COLS }, () => ({ h: .08, target: .08, phase: Math.random() * Math.PI * 2, amp: .05 + Math.random() * .18 }));
+      let t = 0;
+      function draw() {
+        requestAnimationFrame(draw); t += .018; W = cv.width; H = cv.height;
+        cx.clearRect(0, 0, W, H);
+        const bw = W / bars.length;
+        bars.forEach((b, i) => {
+          b.target = Math.max(.015, Math.min(.55, .1 + Math.sin(t * 1.4 + b.phase) * b.amp + Math.sin(t * .4 + i * .3) * .06));
+          b.h += (b.target - b.h) * .08;
+          const bh = b.h * H, x = i * bw, a = .035 + b.h * .1;
+          cx.fillStyle = `rgba(26,23,20,${a})`; cx.fillRect(x + 1, H - bh, bw - 2, bh);
+          cx.fillStyle = `rgba(26,23,20,${a * .35})`; cx.fillRect(x + 1, 0, bw - 2, bh * .4);
+        });
+        cx.save(); cx.strokeStyle = 'rgba(26,23,20,0.07)'; cx.lineWidth = 2.5; cx.beginPath();
+        for (let i = 0; i <= 160; i++) {
+          const x = (i / 160) * W; const e = .5 + .5 * Math.sin(i * .06 + t * .3);
+          const y = H / 2 + (Math.sin(i * .14 + t * 1.1) * .55 + Math.sin(i * .30 + t * .8) * .30 + Math.sin(i * .055 + t * .4) * .20) * e * (H * .12);
+          i === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y);
+        } cx.stroke(); cx.restore();
+      }
+      draw();
+    })();
+
+    /* HERO WAVE */
+    (function () {
+      const cv = document.getElementById('hero-wave'), cx = cv.getContext('2d');
+      let W, H;
+      function resize() { const r = cv.parentElement.getBoundingClientRect(); W = cv.width = r.width || 600; H = cv.height = cv.offsetHeight || 80; }
+      cv.style.height = Math.max(60, Math.min(88, window.innerWidth * .12)) + 'px';
+      resize(); window.addEventListener('resize', resize);
+      const hs = [{ f: .14, a: .55, s: 1.1, p: 0 }, { f: .30, a: .30, s: .8, p: 1.2 }, { f: .055, a: .20, s: .5, p: 2.4 }, { f: .55, a: .12, s: 1.4, p: .7 }];
+      let t = 0;
+      function draw() {
+        requestAnimationFrame(draw); t += .022; resize(); cx.clearRect(0, 0, W, H);
+        const mid = H / 2;
+        cx.save(); cx.strokeStyle = 'rgba(26,23,20,0.08)'; cx.lineWidth = 3; cx.beginPath();
+        for (let i = 0; i <= W; i++) { let y = 0; hs.forEach(h => { y += Math.sin(i * h.f + t * h.s + h.p) * h.a; }); const e = .55 + .45 * Math.sin(i * .022 + t * .35); i === 0 ? cx.moveTo(i, mid + y * e * mid * .82 + 2) : cx.lineTo(i, mid + y * e * mid * .82 + 2); }
+        cx.stroke(); cx.restore();
+        cx.save(); cx.strokeStyle = 'rgba(26,23,20,0.88)'; cx.lineWidth = 2.8; cx.beginPath();
+        for (let i = 0; i <= W; i++) { let y = 0; hs.forEach(h => { y += Math.sin(i * h.f + t * h.s + h.p) * h.a; }); const e = .55 + .45 * Math.sin(i * .022 + t * .35); i === 0 ? cx.moveTo(i, mid + y * e * mid * .82) : cx.lineTo(i, mid + y * e * mid * .82); }
+        cx.stroke(); cx.restore();
+      }
+      draw();
+    })();
+
+    /* ═══════════════════════════════════
+       LANGUAGE DROPDOWN — inline, no fixed positioning
+       ═══════════════════════════════════ */
+    function toggleLangDropdown() {
+      const wrap = document.getElementById('lang-wrap');
+      const dd = document.getElementById('lang-dropdown');
+      const isOpen = dd.classList.contains('open');
+      if (isOpen) {
+        dd.classList.remove('open');
+        wrap.classList.remove('open');
+      } else {
+        dd.classList.add('open');
+        wrap.classList.add('open');
+      }
+    }
+
+    function selectLang(el) {
+      if (!el.dataset.val) { toast('COMING SOON!', ''); }
+      document.querySelectorAll('.lang-opt').forEach(o => o.classList.remove('active'));
+      el.classList.add('active');
+      const name = el.querySelector('.lang-opt-name')?.textContent || 'English';
+      const flag = el.dataset.flag || '🌐';
+      const isAvail = !!el.dataset.val;
+      document.getElementById('lang-display').textContent = name;
+      document.getElementById('lang-flag').textContent = flag;
+      document.getElementById('ls').value = el.dataset.val || 'en';
+      const badge = document.getElementById('lang-status-badge');
+      badge.textContent = isAvail ? 'AVAILABLE' : 'COMING SOON';
+      badge.className = 'lang-badge' + (isAvail ? '' : ' cs');
+      // Close after selection
+      document.getElementById('lang-dropdown').classList.remove('open');
+      document.getElementById('lang-wrap').classList.remove('open');
+    }
+
+    /* Close when clicking outside */
+    document.addEventListener('click', e => {
+      const wrap = document.getElementById('lang-wrap');
+      if (!wrap.contains(e.target)) {
+        document.getElementById('lang-dropdown').classList.remove('open');
+        wrap.classList.remove('open');
+      }
+    });
+
+    /* ═══════════════════════════════════
+       APP STATE
+       ═══════════════════════════════════ */
     const API = '';
-    const S = {
-      file: null, rec: null, recMime: '', recExt: '.webm', emotion: 'neutral', speed: 1.0, recording: false, playing: false,
-      blob: null, mr: null, ac: null, an: null, af: null, chunks: [], profiles: [], selProf: null, oac: null
-    };
+    const S = { file: null, rec: null, recording: false, playing: false, blob: null, mr: null, ac: null, an: null, af: null, chunks: [], profiles: [], selProf: null, oac: null, recSec: 0, recInt: null };
     const $ = id => document.getElementById(id);
     const D = {
-      fi: $('fi'), dz: $('dz'), fcho: $('fcho'), fn: $('fn'),
-      rb: $('rb'), rl: $('rl'), ww: $('ww'), wc: $('wc'),
-      ti: $('ti'), cc: $('cc'), ls: $('ls'), ss: $('ss'), sv: $('sv'),
+      fi: $('fi'), dz: $('dz'), fcho: $('fcho'), fn: $('fn'), rq: $('rq'), rqb: $('rqb'),
+      discWrap: $('disc-wrap'), rl: $('rl'), ww: $('ww'), wc: $('wc'), rtimer: $('rtimer'),
+      discWc: $('disc-wc'), discHole: $('disc-hole'),
+      ti: $('ti'), cc: $('cc'), ls: $('ls'),
       cb: $('cb'), ct: $('ct'), ci: $('ci'), pb: $('pb'), pf: $('pf'), plbl: $('plbl'),
       os: $('os'), play: $('play'), pico: $('pico'), ae: $('ae'), oc: $('oc'), dl: $('dl'),
       pn: $('pn'), sp: $('sp'), pl2: $('pl2'),
-      sd: $('sd'), st: $('st'), toast: $('toast'), tico: $('tico'), tmsg: $('tmsg'),
+      srcDone: $('src-done'), toast: $('toast'), tico: $('tico'), tmsg: $('tmsg')
     };
 
-    async function health() {
-      try { const r = await fetch(`${API}/health`), d = await r.json(); D.sd.className = 'sdot' + (d.model_loaded ? ' ok' : ' warn'); D.st.textContent = d.model_loaded ? `ONLINE · ${(d.device || 'cpu').toUpperCase()}` : 'LOADING'; }
-      catch { D.sd.className = 'sdot err'; D.st.textContent = 'OFFLINE'; }
+    function switchTab(t) {
+      $('tab-up').classList.toggle('on', t === 'up'); $('tab-rec').classList.toggle('on', t === 'rec');
+      $('panel-up').classList.toggle('on', t === 'up'); $('panel-rec').classList.toggle('on', t === 'rec');
     }
-    health(); setInterval(health, 10000);
 
-    D.fi.addEventListener('change', () => {
-      const f = D.fi.files[0]; if (!f) return;
-      S.file = f; S.rec = null; S.selProf = null;
-      D.fn.textContent = f.name; D.fcho.classList.add('on'); renderP(); toast(`Loaded: ${f.name}`, 'ok');
-    });
-    D.dz.addEventListener('dragover', e => { e.preventDefault(); D.dz.classList.add('ov'); });
+    function animBars() {
+      D.rqb.innerHTML = '';
+      for (let i = 0; i < 32; i++) {
+        const b = document.createElement('div'); b.className = 'rbar';
+        const h = Math.random() * 14 + 3; b.style.cssText = `height:${h}px;transition:height ${.25 + Math.random() * .5}s ease`;
+        D.rqb.appendChild(b);
+        setTimeout(() => { b.style.height = (Math.random() * 14 + 3) + 'px' }, 50 + i * 20);
+      }
+      setInterval(() => D.rqb.querySelectorAll('.rbar').forEach(b => { b.style.height = (Math.random() * 14 + 3) + 'px' }), 800);
+    }
+
+    function setFile(f) {
+      if (!f) return; S.file = f; S.rec = null; S.selProf = null;
+      D.fn.textContent = f.name; D.fcho.classList.add('on');
+      D.rq.classList.add('on'); animBars(); D.srcDone.classList.add('on');
+      renderProfs(); toast('LOADED: ' + f.name.toUpperCase(), 'ok');
+    }
+    D.fi.addEventListener('change', () => setFile(D.fi.files[0]));
+    D.dz.addEventListener('dragover', e => { e.preventDefault(); D.dz.classList.add('ov') });
     D.dz.addEventListener('dragleave', () => D.dz.classList.remove('ov'));
     D.dz.addEventListener('drop', e => {
       e.preventDefault(); D.dz.classList.remove('ov');
       const f = e.dataTransfer.files[0]; if (!f) return;
-      const dt = new DataTransfer(); dt.items.add(f); D.fi.files = dt.files;
-      S.file = f; S.rec = null; S.selProf = null; D.fn.textContent = f.name; D.fcho.classList.add('on'); renderP(); toast(`Loaded: ${f.name}`, 'ok');
+      const dt = new DataTransfer(); dt.items.add(f); D.fi.files = dt.files; setFile(f);
     });
 
-    D.rb.addEventListener('click', async () => { S.recording ? stopR() : await startR(); });
-
-    // ── WAV encoder (browser-side, no ffmpeg needed) ─────────────────────────
-    // Takes a Float32Array of mono samples + sample rate → returns a WAV Blob
     function encodeWAV(samples, sr) {
-      const buf = new ArrayBuffer(44 + samples.length * 2);
-      const v = new DataView(buf);
-      const wr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-      const clamp = x => Math.max(-1, Math.min(1, x));
-      wr(0, 'RIFF'); v.setUint32(4, 36 + samples.length * 2, true);
-      wr(8, 'WAVE'); wr(12, 'fmt '); v.setUint32(16, 16, true);
-      v.setUint16(20, 1, true);   // PCM
-      v.setUint16(22, 1, true);   // mono
-      v.setUint32(24, sr, true);   // sample rate
-      v.setUint32(28, sr * 2, true); // byte rate
-      v.setUint16(32, 2, true);   // block align
-      v.setUint16(34, 16, true);   // bits/sample
+      const buf = new ArrayBuffer(44 + samples.length * 2), v = new DataView(buf);
+      const wr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)) };
+      const cl = x => Math.max(-1, Math.min(1, x));
+      wr(0, 'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); wr(8, 'WAVE'); wr(12, 'fmt ');
+      v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
       wr(36, 'data'); v.setUint32(40, samples.length * 2, true);
-      for (let i = 0; i < samples.length; i++)
-        v.setInt16(44 + i * 2, clamp(samples[i]) * 0x7FFF, true);
+      for (let i = 0; i < samples.length; i++) v.setInt16(44 + i * 2, cl(samples[i]) * 0x7FFF, true);
       return new Blob([buf], { type: 'audio/wav' });
     }
-
-    // Decode any browser Blob (WebM/OGG/MP4) → mono WAV @ 22050 Hz using Web Audio
     async function blobToWav(blob) {
-      const arrayBuf = await blob.arrayBuffer();
-      // Offline context: decode at native rate, then resample to 22050
-      const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const decoded = await tmpCtx.decodeAudioData(arrayBuf);
-      tmpCtx.close();
-      const TARGET = 22050;
-      // Mix to mono
-      const numCh = decoded.numberOfChannels;
-      const srcLen = decoded.length;
-      const mono = new Float32Array(srcLen);
-      for (let ch = 0; ch < numCh; ch++) {
-        const chData = decoded.getChannelData(ch);
-        for (let i = 0; i < srcLen; i++) mono[i] += chData[i] / numCh;
-      }
-      // Resample via OfflineAudioContext
-      const ratio = TARGET / decoded.sampleRate;
-      const outLen = Math.round(srcLen * ratio);
-      const offCtx = new OfflineAudioContext(1, outLen, TARGET);
-      const srcBuf = offCtx.createBuffer(1, srcLen, decoded.sampleRate);
-      srcBuf.copyToChannel(mono, 0);
-      const src = offCtx.createBufferSource();
-      src.buffer = srcBuf;
-      src.connect(offCtx.destination);
-      src.start(0);
-      const rendered = await offCtx.startRendering();
-      return encodeWAV(rendered.getChannelData(0), TARGET);
+      const ab = await blob.arrayBuffer();
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const dec = await ctx.decodeAudioData(ab); ctx.close();
+      const T = 22050, nc = dec.numberOfChannels, sl = dec.length;
+      const mono = new Float32Array(sl);
+      for (let c = 0; c < nc; c++) { const d = dec.getChannelData(c); for (let i = 0; i < sl; i++) mono[i] += d[i] / nc; }
+      const outLen = Math.round(sl * T / dec.sampleRate);
+      const off = new OfflineAudioContext(1, outLen, T);
+      const sb = off.createBuffer(1, sl, dec.sampleRate); sb.copyToChannel(mono, 0);
+      const src = off.createBufferSource(); src.buffer = sb; src.connect(off.destination); src.start(0);
+      const r = await off.startRendering();
+      return encodeWAV(r.getChannelData(0), T);
     }
 
-    async function startR() {
+    /* VINYL RECORDER */
+    function toggleRec() { S.recording ? stopRec() : startRec() }
+    let discRafId = null;
+    function drawDiscWave() {
+      const cv = D.discWc; const size = D.discWrap.offsetWidth;
+      cv.width = size; cv.height = size;
+      const cx = cv.getContext('2d'); const buf = new Uint8Array(S.an.frequencyBinCount);
+      const R = size / 2; const innerR = R * 0.18;
+      function frame() {
+        discRafId = requestAnimationFrame(frame); S.an.getByteFrequencyData(buf);
+        cx.clearRect(0, 0, size, size);
+        const numBars = Math.min(buf.length, 48);
+        const angleStep = (2 * Math.PI) / numBars;
+        for (let i = 0; i < numBars; i++) {
+          const val = buf[i] / 255; const barLen = val * (R - innerR - 4) * 0.7;
+          if (barLen < 1) continue;
+          const angle = i * angleStep - Math.PI / 2;
+          const x1 = R + Math.cos(angle) * innerR, y1 = R + Math.sin(angle) * innerR;
+          const x2 = R + Math.cos(angle) * (innerR + barLen), y2 = R + Math.sin(angle) * (innerR + barLen);
+          cx.strokeStyle = `rgba(237,233,224,${0.4 + val * 0.55})`;
+          cx.lineWidth = 2.5; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke();
+        }
+      } frame();
+    }
+    async function startRec() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         S.chunks = [];
-        // Pick whatever MIME the browser supports — we convert it client-side anyway
-        const mimes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg', 'audio/mp4', ''];
+        const mimes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg', 'audio/mp4', ''];
         const mime = mimes.find(m => !m || (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m))) || '';
         S.mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
-        S.mr.ondataavailable = e => { if (e.data && e.data.size > 0) S.chunks.push(e.data); };
+        S.mr.ondataavailable = e => { if (e.data && e.data.size > 0) S.chunks.push(e.data) };
         S.mr.onstop = async () => {
           const raw = new Blob(S.chunks, { type: S.mr.mimeType || 'audio/webm' });
-          toast('Converting…', '');
-          try {
-            S.rec = await blobToWav(raw);   // ← always a clean WAV now
-            S.recExt = '.wav';
-            S.file = null; S.selProf = null;
-            D.fn.textContent = 'Recorded audio';
-            D.fcho.classList.add('on');
-            renderP();
-            toast('Captured!', 'ok');
-          } catch (err) {
-            toast('Conversion failed: ' + err.message, 'er');
-            console.error(err);
-          }
+          toast('PROCESSING_', '');
+          try { S.rec = await blobToWav(raw); S.file = null; S.selProf = null; D.srcDone.classList.add('on'); D.rq.classList.add('on'); animBars(); renderProfs(); toast('CAPTURED!', 'ok'); }
+          catch (e) { toast('ERROR: ' + e.message.toUpperCase(), 'er') }
         };
-        S.mr.start(250);
-        S.recording = true; D.rb.classList.add('on'); D.rl.textContent = 'TAP TO STOP'; D.ww.classList.add('on');
+        S.mr.start(250); S.recording = true;
+        D.discWrap.classList.add('spinning'); D.rl.textContent = '[ TAP DISC TO STOP ]';
+        D.rtimer.classList.add('on'); S.recSec = 0;
+        S.recInt = setInterval(() => { S.recSec++; const m = Math.floor(S.recSec / 60), s = S.recSec % 60; D.rtimer.textContent = m + ':' + (s < 10 ? '0' : '') + s; }, 1000);
         S.ac = new AudioContext(); S.an = S.ac.createAnalyser(); S.an.fftSize = 256;
-        S.ac.createMediaStreamSource(stream).connect(S.an); drawW();
-      } catch (e) {
-        toast('Mic access denied', 'er');
-        console.error('Recorder error:', e);
-      }
+        S.ac.createMediaStreamSource(stream).connect(S.an);
+        drawDiscWave(); D.ww.classList.add('on'); drawRecWave();
+      } catch (e) { toast('MIC DENIED', 'er'); }
     }
-    function stopR() {
+    function stopRec() {
       if (S.mr && S.mr.state !== 'inactive') S.mr.stop();
-      S.recording = false;
-      D.rb.classList.remove('on'); D.rl.textContent = 'CLICK TO RECORD';
+      S.recording = false; D.discWrap.classList.remove('spinning');
+      D.rl.textContent = '[ TAP DISC TO RECORD ]'; D.rtimer.classList.remove('on'); clearInterval(S.recInt);
       D.ww.classList.remove('on'); cancelAnimationFrame(S.af);
+      if (discRafId) { cancelAnimationFrame(discRafId); discRafId = null; }
+      const cv = D.discWc; const cx = cv.getContext('2d'); cx.clearRect(0, 0, cv.width, cv.height);
       if (S.ac) { S.ac.close(); S.ac = null; }
     }
-    function drawW() {
+    function drawRecWave() {
       const cv = D.wc, cx = cv.getContext('2d'), buf = new Uint8Array(S.an.frequencyBinCount);
-      function f() { S.af = requestAnimationFrame(f); S.an.getByteFrequencyData(buf); const W = cv.width = D.ww.offsetWidth, H = cv.height = 36; cx.clearRect(0, 0, W, H); const bw = W / buf.length; buf.forEach((v, i) => { const h = (v / 255) * H, g = cx.createLinearGradient(0, H, 0, H - h); g.addColorStop(0, 'rgba(0,229,200,.9)'); g.addColorStop(1, 'rgba(0,229,200,.15)'); cx.fillStyle = g; cx.fillRect(i * bw, H - h, bw - 1, h); }); } f();
+      function f() {
+        S.af = requestAnimationFrame(f); S.an.getByteFrequencyData(buf);
+        const W = cv.width = D.ww.offsetWidth, H = cv.height = 36; cx.clearRect(0, 0, W, H);
+        const bw = W / buf.length;
+        buf.forEach((v, i) => { const h = (v / 255) * H; cx.fillStyle = `rgba(26,23,20,${.06 + h / H * .8})`; cx.fillRect(i * bw, H - h, bw - 1, h); });
+      } f();
     }
 
-    D.ti.addEventListener('input', () => { const n = D.ti.value.length; D.cc.textContent = `${n} / 500`; D.cc.className = 'cc' + (n > 450 ? ' warn' : '') + (n >= 500 ? ' over' : ''); });
-    D.ss.addEventListener('input', () => { S.speed = parseFloat(D.ss.value); D.sv.textContent = `${S.speed.toFixed(1)}×`; });
-    document.querySelectorAll('.chip').forEach(c => { c.addEventListener('click', () => { document.querySelectorAll('.chip').forEach(x => x.classList.remove('on')); c.classList.add('on'); S.emotion = c.dataset.e; }); });
+    /* TEXT */
+    D.ti.addEventListener('input', () => {
+      const n = D.ti.value.length; D.cc.textContent = `${n} / 500`;
+      D.cc.className = 'char-c' + (n > 450 ? ' warn' : '') + (n >= 500 ? ' over' : '');
+    });
 
+    /* CLONE */
     D.cb.addEventListener('click', async () => {
       const text = D.ti.value.trim();
-      if (!text) { toast('Enter text first', 'er'); return; }
-      if (!S.file && !S.rec && !S.selProf) { toast('Choose a voice source first', 'er'); return; }
+      if (!text) { toast('ENTER TEXT FIRST', 'er'); return }
+      if (!S.file && !S.rec && !S.selProf) { toast('ADD VOICE SOURCE FIRST', 'er'); return }
       setLoad(true);
-      const fd = new FormData();
-      fd.append('text', text); fd.append('language', D.ls.value); fd.append('emotion', S.emotion); fd.append('speed', S.speed);
+      const fd = new FormData(); fd.append('text', text); fd.append('language', D.ls.value); fd.append('speed', 1.0);
       try {
-        if (S.selProf) {
-          fd.append('profile_name', S.selProf);
-        } else {
-          // Always send a clean WAV — convert in browser if needed
-          let wavBlob;
-          const src = S.file || S.rec;
-          const needsConvert = S.file
-            ? !/\.wav$/i.test(S.file.name)   // non-WAV upload
-            : true;                           // recorded audio always convert
-          if (needsConvert) {
-            toast('Converting audio…', '');
-            wavBlob = await blobToWav(src);
-          } else {
-            wavBlob = src;
-          }
-          fd.append('voice_sample', new File([wavBlob], 'voice.wav', { type: 'audio/wav' }));
+        if (S.selProf) { fd.append('profile_name', S.selProf); }
+        else {
+          const src = S.file || S.rec; const nc = S.file ? !/\.wav$/i.test(S.file.name) : true;
+          let wav; if (nc) { toast('CONVERTING_', ''); wav = await blobToWav(src); } else wav = src;
+          fd.append('voice_sample', new File([wav], 'voice.wav', { type: 'audio/wav' }));
         }
-        let p = 0; const t = setInterval(() => { p = Math.min(p + Math.random() * 7, 90); D.pf.style.width = p + '%'; }, 400);
-        const r = await fetch(`${API}/clone`, { method: 'POST', body: fd }); clearInterval(t);
-        if (!r.ok) { const e = await r.json().catch(() => ({ detail: 'Failed' })); throw new Error(e.detail || 'Failed'); }
+        let p = 0;
+        const timer = setInterval(() => { p = Math.min(p + Math.random() * 7, 90); D.pf.style.width = p + '%' }, 400);
+        const r = await fetch(`${API}/clone`, { method: 'POST', body: fd }); clearInterval(timer);
+        if (!r.ok) { const e = await r.json().catch(() => ({ detail: 'FAILED' })); throw new Error(e.detail) }
         D.pf.style.width = '100%';
-        const blob = await r.blob(); S.blob = blob; const url = URL.createObjectURL(blob);
-        D.ae.src = url; D.dl.href = url; D.os.classList.add('on'); D.os.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        toast('Cloned!', 'ok'); initViz();
-      } catch (e) { toast(e.message, 'er'); }
-      finally { setLoad(false); }
+        const blob = await r.blob(); S.blob = blob;
+        const url = URL.createObjectURL(blob); D.ae.src = url; D.dl.href = url;
+        D.os.classList.add('on'); D.os.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        toast('CLONE COMPLETE!', 'ok'); initViz();
+      } catch (e) { toast(String(e.message).toUpperCase(), 'er') }
+      finally { setLoad(false) }
     });
 
     function setLoad(on) {
       D.cb.disabled = on; D.pb.classList.toggle('on', on); D.plbl.classList.toggle('on', on);
-      D.ct.textContent = on ? 'SYNTHESIZING…' : 'CLONE VOICE';
+      D.ct.textContent = on ? 'SYNTHESISING_' : 'CLONE VOICE';
       if (!on) D.pf.style.width = '0%';
       if (on) {
-        if (!document.getElementById('_sp')) { const s = document.createElement('style'); s.id = '_sp'; s.textContent = '@keyframes _s{to{transform:rotate(360deg)}}'; document.head.appendChild(s); }
-        D.ci.setAttribute('viewBox', '0 0 22 22'); D.ci.style.cssText = 'animation:_s .7s linear infinite';
-        D.ci.innerHTML = '<circle cx="11" cy="11" r="9" fill="none" stroke="rgba(8,12,18,.3)" stroke-width="2"/><path d="M11 2a9 9 0 0 1 9 9" fill="none" stroke="#080c12" stroke-width="2" stroke-linecap="round"/>';
+        D.ci.setAttribute('viewBox', '0 0 22 22'); D.ci.style.cssText = 'animation:spin .7s linear infinite';
+        D.ci.innerHTML = '<circle cx="11" cy="11" r="9" fill="none" stroke="rgba(237,233,224,.3)" stroke-width="2"/><path d="M11 2a9 9 0 0 1 9 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
       } else {
         D.ci.setAttribute('viewBox', '0 0 24 24'); D.ci.style.cssText = '';
         D.ci.innerHTML = '<path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/>';
       }
     }
 
-    // ── Output visualiser ───────────────────────────────────────────────────────
-    // Rules:
-    //  • AudioContext must be created inside a user gesture (click).
-    //  • createMediaElementSource() can only be called ONCE per <audio> element.
-    //  • So we create the AudioContext + source node the very first time play is
-    //    clicked, then reuse them for every subsequent clone.
-    // ───────────────────────────────────────────────────────────────────────────
+    /* VISUALISER */
     let vizReady = false;
-    let vizRafId = null;
-
     function ensureViz() {
-      if (vizReady) {
-        // AudioContext may be suspended after a period of silence — resume it
-        if (S.oac && S.oac.state === 'suspended') S.oac.resume();
-        return;
-      }
-      // First call: build the entire audio graph
-      const ac = new AudioContext();
-      S.oac = ac;
-      const an = ac.createAnalyser();
-      an.fftSize = 128;
-      // Connect <audio> element → analyser → speakers. Only done ONCE.
-      ac.createMediaElementSource(D.ae).connect(an);
-      an.connect(ac.destination);
-      S.vizAn = an;
+      if (vizReady) { if (S.oac && S.oac.state === 'suspended') S.oac.resume(); return }
+      const ac = new AudioContext(); S.oac = ac;
+      const an = ac.createAnalyser(); an.fftSize = 128;
+      ac.createMediaElementSource(D.ae).connect(an); an.connect(ac.destination);
       vizReady = true;
-
-      // Kick off continuous draw loop
       const cv = D.oc, cx = cv.getContext('2d');
       function draw() {
-        vizRafId = requestAnimationFrame(draw);
-        const buf = new Uint8Array(an.frequencyBinCount);
-        an.getByteFrequencyData(buf);
-        const W = cv.width = cv.offsetWidth, H = cv.height = cv.offsetHeight;
-        cx.clearRect(0, 0, W, H);
+        requestAnimationFrame(draw);
+        const buf = new Uint8Array(an.frequencyBinCount); an.getByteFrequencyData(buf);
+        const W = cv.width = cv.offsetWidth, H = cv.height = cv.offsetHeight; cx.clearRect(0, 0, W, H);
         const bw = W / buf.length;
-        buf.forEach((v, i) => {
-          const h = (v / 255) * H;
-          if (h < 1) return;
-          const g = cx.createLinearGradient(0, H, 0, H - h);
-          g.addColorStop(0, 'rgba(0,229,200,.9)');
-          g.addColorStop(0.5, 'rgba(255,176,32,.65)');
-          g.addColorStop(1, 'rgba(34,212,122,.35)');
-          cx.fillStyle = g;
-          cx.beginPath();
-          if (cx.roundRect) cx.roundRect(i * bw + 1, H - h, bw - 2, h, 2);
-          else cx.rect(i * bw + 1, H - h, bw - 2, h);
-          cx.fill();
-        });
-      }
-      draw();
+        buf.forEach((v, i) => { const h = (v / 255) * H; if (h < 1) return; cx.fillStyle = `rgba(26,23,20,${.08 + h / H * .82})`; cx.fillRect(i * bw + 1, H - h, bw - 2, h); });
+      } draw();
     }
-
     D.play.addEventListener('click', () => {
-      ensureViz();   // safe to call every time — no-op after first call
-      if (D.ae.paused) {
-        D.ae.play();
-        S.playing = true;
-        D.pico.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-        D.play.classList.add('on');
-      } else {
-        D.ae.pause();
-        S.playing = false;
-        D.pico.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-        D.play.classList.remove('on');
-      }
+      ensureViz();
+      if (D.ae.paused) { D.ae.play(); S.playing = true; D.pico.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'; D.play.classList.add('on'); }
+      else { D.ae.pause(); S.playing = false; D.pico.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>'; D.play.classList.remove('on'); }
     });
-    D.ae.addEventListener('ended', () => {
-      S.playing = false;
-      D.pico.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-      D.play.classList.remove('on');
-    });
+    D.ae.addEventListener('ended', () => { S.playing = false; D.pico.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>'; D.play.classList.remove('on'); });
+    function initViz() { S.playing = false; D.pico.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>'; D.play.classList.remove('on') }
 
-    // Called after a successful clone — just update the src, no new AudioContext
-    function initViz() {
-      // Nothing to do here anymore; ensureViz() is called on play click.
-      // Reset play button to "play" state for the new audio.
-      S.playing = false;
-      D.pico.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-      D.play.classList.remove('on');
+    /* PROFILES */
+    async function loadProfs() {
+      try { const r = await fetch(`${API}/profiles`); const d = await r.json(); S.profiles = d.profiles || []; }
+      catch { S.profiles = [] } renderProfs();
     }
-
-    async function loadP() { try { const r = await fetch(`${API}/profiles`); const d = await r.json(); S.profiles = d.profiles || []; } catch { S.profiles = []; } renderP(); }
-    function renderP() {
+    function renderProfs() {
       const el = D.pl2;
-      if (!S.profiles.length) { el.innerHTML = '<span class="noprof">No profiles saved yet</span>'; return; }
+      if (!S.profiles.length) { el.innerHTML = '<span class="no-prof">no profiles saved yet_</span>'; return }
       el.innerHTML = '';
-      S.profiles.forEach(p => { const t = document.createElement('div'); t.className = 'ptag' + (S.selProf === p ? ' on' : ''); t.innerHTML = `<span>${p}</span><span class="pdel" data-p="${p}">×</span>`; t.addEventListener('click', e => { const dp = e.target.dataset.p; if (dp) { delP(dp); return; } S.selProf = S.selProf === p ? null : p; if (S.selProf) { S.file = null; S.rec = null; } renderP(); if (S.selProf) toast(`"${p}" selected`, 'ok'); }); el.appendChild(t); });
+      S.profiles.forEach(p => {
+        const t = document.createElement('div'); t.className = 'prof-chip' + (S.selProf === p ? ' on' : '');
+        t.innerHTML = `<span>${p}</span><span class="prof-x" data-p="${p}">×</span>`;
+        t.addEventListener('click', e => {
+          const dp = e.target.dataset.p; if (dp) { delProf(dp); return }
+          S.selProf = S.selProf === p ? null : p; if (S.selProf) { S.file = null; S.rec = null; }
+          renderProfs(); if (S.selProf) toast(`"${p.toUpperCase()}" SELECTED`, 'ok');
+        }); el.appendChild(t);
+      });
     }
     D.sp.addEventListener('click', async () => {
-      const name = D.pn.value.trim(); if (!name) { toast('Enter a name', 'er'); return; }
-      const src = S.file || S.rec; if (!src) { toast('Load or record audio first', 'er'); return; }
+      const name = D.pn.value.trim(); if (!name) { toast('ENTER A NAME', 'er'); return }
+      const src = S.file || S.rec; if (!src) { toast('LOAD AUDIO FIRST', 'er'); return }
       try {
-        toast('Saving…', '');
-        const needsConvert = S.file ? !/\.wav$/i.test(S.file.name) : true;
-        const wavBlob = needsConvert ? await blobToWav(src) : src;
+        toast('SAVING_', '');
+        const nc = S.file ? !/\.wav$/i.test(S.file.name) : true;
+        const wav = nc ? await blobToWav(src) : src;
         const fd = new FormData(); fd.append('profile_name', name);
-        fd.append('voice_sample', new File([wavBlob], 'voice.wav', { type: 'audio/wav' }));
+        fd.append('voice_sample', new File([wav], 'voice.wav', { type: 'audio/wav' }));
         const r = await fetch(`${API}/save-profile`, { method: 'POST', body: fd });
         if (!r.ok) throw new Error();
-        toast(`"${name}" saved!`, 'ok'); D.pn.value = ''; await loadP();
-      } catch { toast('Save failed', 'er'); }
+        toast(`"${name.toUpperCase()}" SAVED!`, 'ok'); D.pn.value = ''; await loadProfs();
+      } catch { toast('SAVE FAILED', 'er') }
     });
-    async function delP(name) { try { await fetch(`${API}/profiles/${name}`, { method: 'DELETE' }); if (S.selProf === name) S.selProf = null; toast(`"${name}" deleted`, ''); await loadP(); } catch { toast('Delete failed', 'er'); } }
-    loadP();
+    async function delProf(name) {
+      try {
+        await fetch(`${API}/profiles/${name}`, { method: 'DELETE' });
+        if (S.selProf === name) S.selProf = null;
+        toast(`"${name.toUpperCase()}" DELETED`, ''); await loadProfs();
+      } catch { toast('DELETE FAILED', 'er') }
+    }
+    loadProfs();
 
+    /* TOAST */
     let _tt;
-    function toast(msg, type = '') { D.toast.className = 'toast on' + (type ? ` ${type}` : ''); D.tico.textContent = type === 'ok' ? '✓' : type === 'er' ? '✕' : 'ℹ'; D.tmsg.textContent = msg; clearTimeout(_tt); _tt = setTimeout(() => D.toast.classList.remove('on'), 3200); }
+    function toast(msg, type = '') {
+      D.toast.className = 'toast on' + (type ? ` ${type}` : '');
+      D.tico.textContent = type === 'ok' ? '[OK]' : type === 'er' ? '[ERR]' : '[--]';
+      D.tmsg.textContent = msg; clearTimeout(_tt);
+      _tt = setTimeout(() => D.toast.classList.remove('on'), 3200);
+    }
   </script>
 </body>
 
