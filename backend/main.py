@@ -48,18 +48,20 @@ import uvicorn
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
 logger = logging.getLogger("voxai")
 
-BASE_DIR     = Path(__file__).parent.parent
+# ── Path resolution: works locally AND inside Docker / HF Spaces ──────────────
+# When running as "uvicorn backend.main:app" from /app, __file__ is /app/backend/main.py
+BASE_DIR     = Path(__file__).parent.parent          # /app  (or voice-clone/ locally)
 FRONTEND_DIR = BASE_DIR / "frontend"
 OUTPUT_DIR   = BASE_DIR / "outputs"
 PROFILE_DIR  = BASE_DIR / "profiles"
 OUTPUT_DIR.mkdir(exist_ok=True)
 PROFILE_DIR.mkdir(exist_ok=True)
 
-CHATTERBOX_SR   = 24000
-OUTPUT_SR       = 48000   # v8: output at 48kHz (broadcast quality)
-MIN_DURATION_S  = 4
-BEST_DURATION_S = 15
-WARN_DURATION_S = 10
+CHATTERBOX_SR    = 24000
+OUTPUT_SR        = 48000   # v8: output at 48kHz (broadcast quality)
+MIN_DURATION_S   = 4
+BEST_DURATION_S  = 15
+WARN_DURATION_S  = 10
 CHUNK_CHAR_LIMIT = 130
 
 # v8: UPDATED DEFAULTS -- lower exaggeration = stable pitch, less creak
@@ -73,7 +75,11 @@ if FRONTEND_DIR.exists():
 
 @app.get("/")
 async def root():
-    return FileResponse(FRONTEND_DIR / "index.html")
+    # Safe fallback: works locally AND on HF Spaces / Docker where frontend may be absent
+    idx = FRONTEND_DIR / "index.html"
+    if idx.exists():
+        return FileResponse(str(idx))
+    return {"status": "VOXAI backend running", "docs": "/docs"}
 
 cb_model = None
 DEVICE   = "cuda" if torch.cuda.is_available() else "cpu"
@@ -141,7 +147,7 @@ def _best_segment(wav: torch.Tensor, sr: int, target_s: float) -> torch.Tensor:
     s = wav.squeeze(0)
     if s.shape[0] / sr <= target_s + 1:
         return wav
-    tgt = int(target_s * sr)
+    tgt  = int(target_s * sr)
     step = int(0.25 * sr)
     best_rms, best_start = -1.0, 0
     for start in range(0, s.shape[0] - tgt, step):
@@ -170,9 +176,9 @@ def analyse_reference(path: str) -> dict:
         w, sr = torchaudio.load(path)
         if w.shape[0] > 1: w = w.mean(0, keepdim=True)
         s = w.squeeze(0).cpu().numpy().astype(np.float64)
-        rms = float(np.sqrt(np.mean(s**2)))
+        rms    = float(np.sqrt(np.mean(s**2)))
         sos_hf = sp.butter(4, min(4000.0/(sr/2), 0.99), 'high', output='sos')
-        sos_lf = sp.butter(4, min(300.0/(sr/2), 0.99), 'low', output='sos')
+        sos_lf = sp.butter(4, min(300.0/(sr/2),  0.99), 'low',  output='sos')
         hf_rms = float(np.sqrt(np.mean(sp.sosfilt(sos_hf, s)**2)))
         lf_rms = float(np.sqrt(np.mean(sp.sosfilt(sos_lf, s)**2)))
         return {"rms": rms, "hf_lf_ratio": hf_rms / (lf_rms + 1e-9)}
@@ -184,19 +190,19 @@ def enhance_reference(path: str) -> dict:
     try:
         w, sr = torchaudio.load(path)
         if w.shape[0] > 1: w = w.mean(0, keepdim=True)
-        w = _best_segment(w, sr, BEST_DURATION_S)
-        w = _gentle_trim(w, sr, top_db=28.0)
-        s = w.squeeze(0).cpu().numpy().astype(np.float64)
+        w   = _best_segment(w, sr, BEST_DURATION_S)
+        w   = _gentle_trim(w, sr, top_db=28.0)
+        s   = w.squeeze(0).cpu().numpy().astype(np.float64)
         sos = sp.butter(2, min(60.0/(sr/2), 0.99), btype='highpass', output='sos')
-        s = sp.sosfilt(sos, s)
-        w = torch.from_numpy(s.astype(np.float32)).unsqueeze(0)
-        pk = w.abs().max()
+        s   = sp.sosfilt(sos, s)
+        w   = torch.from_numpy(s.astype(np.float32)).unsqueeze(0)
+        pk  = w.abs().max()
         if pk > 1e-6: w = w * (10**(-8/20) / pk)
         dur = w.shape[1] / sr
         torchaudio.save(path, w, sr)
         info = analyse_reference(path)
         info["duration"] = dur
-        info["ok"] = dur >= MIN_DURATION_S
+        info["ok"]       = dur >= MIN_DURATION_S
         return info
     except Exception as e:
         logger.warning("Reference enhance: %s", e)
@@ -241,15 +247,15 @@ def apply_bass_restoration(s: np.ndarray, sr: int) -> np.ndarray:
 
     # Low shelf +10dB below 300Hz
     sos_ls = sp.butter(4, min(300.0 / (sr / 2), 0.99), btype='low', output='sos')
-    bass = sp.sosfilt(sos_ls, s)
-    s = s + (10 ** (10.0 / 20) - 1.0) * bass
+    bass   = sp.sosfilt(sos_ls, s)
+    s      = s + (10 ** (10.0 / 20) - 1.0) * bass
 
     # Body bump +3dB at 450-600Hz
-    lo = max(0.001, 420.0/(sr/2))
-    hi = min(0.999, 650.0/(sr/2))
+    lo    = max(0.001, 420.0/(sr/2))
+    hi    = min(0.999, 650.0/(sr/2))
     sos_b = sp.butter(2, [lo, hi], btype='bandpass', output='sos')
-    body = sp.sosfilt(sos_b, s)
-    s = s + (10 ** (3.0/20) - 1.0) * body
+    body  = sp.sosfilt(sos_b, s)
+    s     = s + (10 ** (3.0/20) - 1.0) * body
 
     return s.astype(np.float32)
 
@@ -271,7 +277,7 @@ def apply_cepstral_denoising(s: np.ndarray, sr: int) -> np.ndarray:
     3. Reconstruct via FFT -> exp -> recombine with original phase
     4. Overlap-add synthesis
     """
-    s = s.astype(np.float64)
+    s          = s.astype(np.float64)
     frame_size = 512
     hop        = 256
     result     = np.zeros(len(s) + frame_size)
@@ -289,7 +295,7 @@ def apply_cepstral_denoising(s: np.ndarray, sr: int) -> np.ndarray:
             norm[i:i + frame_size]   += window
             continue
 
-        spec = rfft(frame, n=frame_size)
+        spec     = rfft(frame, n=frame_size)
         log_spec = np.log(np.abs(spec) + 1e-9)
         cepstrum = np.real(np.fft.ifft(
             np.concatenate([log_spec, log_spec[-2:0:-1]])
@@ -307,7 +313,7 @@ def apply_cepstral_denoising(s: np.ndarray, sr: int) -> np.ndarray:
         result[i:i + frame_size] += frame_out
         norm[i:i + frame_size]   += window ** 2
 
-    norm = np.maximum(norm, 1e-6)
+    norm   = np.maximum(norm, 1e-6)
     result = (result[:len(s)] / norm[:len(s)])
 
     # Blend 70% processed + 30% original
@@ -330,7 +336,7 @@ def apply_bandwidth_extension(s: np.ndarray, src_sr: int, dst_sr: int = 48000) -
     5. Roll off with natural -12dB/oct speech tilt
     6. Mix at -18dB (barely audible -- just removes the hard cutoff)
     """
-    w_t = torch.from_numpy(s.astype(np.float32)).unsqueeze(0)
+    w_t  = torch.from_numpy(s.astype(np.float32)).unsqueeze(0)
     w_up = torchaudio.functional.resample(w_t, src_sr, dst_sr)
     s_up = w_up.squeeze(0).numpy().astype(np.float64)
 
@@ -380,7 +386,7 @@ def apply_natural_dynamics(s: np.ndarray, sr: int) -> np.ndarray:
             out = np.empty_like(band)
             env = 0.0; g = 1.0
             for i, x in enumerate(band):
-                lv = abs(x)
+                lv  = abs(x)
                 env = lv + (att if lv > env else rel) * (env - lv)
                 g_t = ((thr * (env/thr)**(1/ratio)) / (env + 1e-10)) if env > thr else 1.0
                 g  += 0.008 * (g_t - g)
@@ -417,33 +423,33 @@ def apply_room_tone(s: np.ndarray, sr: int, wet: float = 0.05) -> np.ndarray:
     like reverb. Matched to hand-held phone recording environment.
     """
     try:
-        s = s.astype(np.float64)
+        s   = s.astype(np.float64)
         pre = int(sr * 0.006)
         delayed = np.zeros_like(s)
         if pre < len(s): delayed[pre:] = s[:-pre]
 
         combs = []
         for dm, g_val in [(27.1, 0.76), (32.3, 0.76), (38.7, 0.74)]:
-            d = max(1, int(sr * dm / 1000))
+            d   = max(1, int(sr * dm / 1000))
             g, buf, bi = g_val, np.zeros(d), 0
             out = np.empty_like(delayed)
             for n, x in enumerate(delayed):
-                out[n] = buf[bi]
+                out[n]  = buf[bi]
                 buf[bi] = x + g * buf[bi]
-                bi = (bi + 1) % d
+                bi      = (bi + 1) % d
             combs.append(out)
 
         reverb = sum(combs) / len(combs)
         for dm, g in [(4.5, 0.62), (1.4, 0.62)]:
-            d = max(1, int(sr * dm / 1000))
+            d       = max(1, int(sr * dm / 1000))
             buf, bi = np.zeros(d), 0
-            out = np.empty_like(reverb)
+            out     = np.empty_like(reverb)
             for n, x in enumerate(reverb):
-                ds = buf[bi]; inp = x + g * ds
-                out[n] = -g * inp + ds; buf[bi] = inp; bi = (bi+1) % d
+                ds      = buf[bi]; inp = x + g * ds
+                out[n]  = -g * inp + ds; buf[bi] = inp; bi = (bi+1) % d
             reverb = out
 
-        sos = sp.butter(2, min(3500.0/(sr/2), 0.99), 'low', output='sos')
+        sos    = sp.butter(2, min(3500.0/(sr/2), 0.99), 'low', output='sos')
         reverb = sp.sosfilt(sos, reverb)
         return (s * (1 - wet) + reverb * wet).astype(np.float32)
     except Exception as e:
@@ -464,9 +470,9 @@ def apply_lufs_normalization(s: np.ndarray, sr: int, target_lufs: float = -16.0)
     s = s.astype(np.float64)
     # K-weighting high-shelf approximation
     sos_kw = sp.butter(2, min(1500.0/(sr/2), 0.99), 'high', output='sos')
-    s_kw = s + (10**(4.0/20) - 1.0) * sp.sosfilt(sos_kw, s)
+    s_kw   = s + (10**(4.0/20) - 1.0) * sp.sosfilt(sos_kw, s)
 
-    frame = int(sr * 0.1)
+    frame      = int(sr * 0.1)
     rms_blocks = []
     for i in range(0, len(s_kw) - frame, frame):
         rms = np.sqrt(np.mean(s_kw[i:i+frame]**2))
@@ -475,27 +481,27 @@ def apply_lufs_normalization(s: np.ndarray, sr: int, target_lufs: float = -16.0)
     if not rms_blocks:
         return s.astype(np.float32)
 
-    rms_arr  = np.array(rms_blocks)
-    mean_rms = np.mean(rms_arr)
-    gate_rms = np.mean(rms_arr[rms_arr > mean_rms * 10**(-10/20)])
+    rms_arr      = np.array(rms_blocks)
+    mean_rms     = np.mean(rms_arr)
+    gate_rms     = np.mean(rms_arr[rms_arr > mean_rms * 10**(-10/20)])
     current_lufs = 20 * np.log10(gate_rms + 1e-9) - 0.69
-    gain_db = target_lufs - current_lufs
-    gain = 10 ** (gain_db / 20)
+    gain_db      = target_lufs - current_lufs
+    gain         = 10 ** (gain_db / 20)
     logger.info("LUFS: current=%.1f target=%.1f gain=%+.1fdB", current_lufs, target_lufs, gain_db)
     return np.clip(s * gain, -0.97, 0.97).astype(np.float32)
 
 
 def apply_true_peak_limiter(s: np.ndarray, ceiling_db: float = -1.0) -> np.ndarray:
     """Smooth true-peak limiter. Prevents inter-sample peaks."""
-    s = s.astype(np.float64)
+    s       = s.astype(np.float64)
     ceiling = 10 ** (ceiling_db / 20)
     sr_approx = max(1, len(s) // 10)
     att = np.exp(-1.0 / sr_approx)
     rel = np.exp(-1.0 / (sr_approx * 10))
     out = np.empty_like(s)
-    g = 1.0
+    g   = 1.0
     for i, x in enumerate(s):
-        lv = abs(x)
+        lv  = abs(x)
         g_t = min(1.0, ceiling / (lv + 1e-9))
         g  += (att if g_t < g else rel) * (g_t - g)
         out[i] = x * g
@@ -637,9 +643,9 @@ async def clone(
             if not sp_path.exists():
                 raise HTTPException(404, f"Profile '{profile_name}' not found")
             speaker_wav = str(sp_path)
-            ref_info = analyse_reference(speaker_wav)
+            ref_info    = analyse_reference(speaker_wav)
         elif voice_sample:
-            raw = await voice_sample.read()
+            raw   = await voice_sample.read()
             fname = voice_sample.filename or "upload.wav"
             try:
                 speaker_wav, ref_info = prepare_audio(raw, fname)
@@ -724,4 +730,6 @@ async def delete_profile(name: str):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    # PORT env var support: HF Spaces uses 7860, local default is 8000
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
