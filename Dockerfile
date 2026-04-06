@@ -1,6 +1,5 @@
 FROM python:3.11-slim
 
-# Install system deps including ffmpeg
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     git \
@@ -19,10 +18,18 @@ WORKDIR /app
 
 COPY backend/requirements.txt ./requirements.txt
 
-# Step 1: numpy first (pkuseg needs it at build time)
-# Step 2: everything else
+# ── Critical install order ──────────────────────────────────────────
+# 1. numpy must be in the GLOBAL site-packages before pkuseg builds,
+#    because pkuseg's setup.py calls `import numpy` at build time.
+#    pip's isolated build env does NOT inherit the parent env, so we
+#    must pre-seed numpy into the build cache via PIP_NO_BUILD_ISOLATION=0
+#    OR simply install numpy+pkuseg before everything else.
+#
+# 2. pkuseg must be installed (and compiled) before chatterbox-tts,
+#    so it is already satisfied when chatterbox pulls it in.
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir "numpy>=1.24.0,<2.0.0" && \
+    pip install --no-cache-dir --no-build-isolation "pkuseg==0.0.25" && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY . .
