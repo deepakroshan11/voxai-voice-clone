@@ -1,14 +1,19 @@
+# ─── Web framework ───────────────────────────────
 fastapi==0.111.0
 uvicorn[standard]==0.29.0
 python-multipart==0.0.9
 
-
+# ─── Chatterbox TTS ──────────────────────────────
+# 0.1.4 hardcodes torch==2.6.0 — torch version below must match
 chatterbox-tts==0.1.4
 
+# ─── PyTorch ─────────────────────────────────────
+# Must be 2.6.0 — chatterbox-tts==0.1.4 requires exactly this
+torch==2.6.0
+torchaudio==2.6.0
 
-torch==2.3.0
-torchaudio==2.3.0
-
+# ─── Audio utilities ─────────────────────────────
+# numpy capped at <2.0.0 — librosa/pkuseg not compatible with numpy 2.x
 numpy>=1.24.0,<2.0.0
 soundfile>=0.12.1
 scipy>=1.11.0
