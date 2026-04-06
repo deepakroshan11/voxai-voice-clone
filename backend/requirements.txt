@@ -4,8 +4,8 @@ uvicorn[standard]==0.29.0
 python-multipart==0.0.9
 
 # ─── Chatterbox TTS ──────────────────────────────
-# spacy-pkuseg pre-installed in Dockerfile satisfies pkuseg requirement
-# chatterbox-tts==0.1.4 requires torch==2.6.0
+# pkuseg is pre-installed in the Dockerfile with --no-build-isolation
+# so pip will not try to rebuild it from source when installing chatterbox-tts.
 chatterbox-tts==0.1.4
 
 # ─── PyTorch ─────────────────────────────────────
