@@ -1,35 +1,3 @@
-"""
-VOXAI — Backend v8 — DEFINITIVE FIX
-=====================================
-Based on 6 rounds of measured audio analysis on YOUR actual files.
-
-MEASURED ROOT CAUSES OF "ROBOTIC" QUALITY (final):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-1. BASS BODY MISSING — 100-300Hz is 9-11dB too quiet in ALL cloned outputs.
-   Your WhatsApp voice has strong chest resonance there. Cloned voice has none.
-   This alone makes it sound "thin" and "disembodied".
-
-2. BANDWIDTH TOO NARROW — ChatterboxTTS outputs 24kHz audio (max 12kHz freq).
-   Your reference recording has real content up to ~18kHz.
-   The sudden cutoff at 12kHz is a strong perceptual cue for "artificial".
-   Fix: harmonic bandwidth extension, resample to 48kHz.
-
-3. NEURAL VOCODER INTER-HARMONIC NOISE — measured ZCR 2.44x higher than reference.
-   The neural vocoder adds aperiodic noise BETWEEN harmonics during voiced sounds.
-   This is the "buzz" or "roughness" quality. H6 SNR was -3.9dB (noise > harmonic).
-   Fix: cepstral liftering (clean harmonic structure without affecting pitch).
-
-4. GENERATION PARAMETERS — exaggeration=0.5 causes pitch instability (F0 std=137Hz vs 74Hz).
-   Fix: use exaggeration=0.3 as new DEFAULT, cfg_weight=0.7.
-   This alone reduces the "robotic expressiveness" artifact significantly.
-
-WHAT DOES NOT NEED FIXING (measured):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- F0/pitch: 119Hz vs 115Hz reference -- already close, NO pitch shift needed
-- Spectral slope: both -9dB/oct -- already matched
-"""
-
 import os, re, uuid, logging, tempfile, subprocess
 from pathlib import Path
 

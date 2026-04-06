@@ -1,3 +1,13 @@
+---
+title: VOXAI Voice Clone Studio
+emoji: 🎙️
+colorFrom: red
+colorTo: gray
+sdk: docker
+pinned: false
+app_port: 7860
+---
+
 # 🎙️ VOXAI — Voice Clone Studio
 
 > **Sound Like Anyone — Instantly.**
@@ -26,7 +36,7 @@
 
 ## 🏗️ Architecture
 
-```
+\`\`\`
 voice-clone/
 ├── backend/
 │   ├── main.py              # FastAPI app — v8 Definitive Fix
@@ -35,10 +45,11 @@ voice-clone/
 │   └── index.html           # Single-file vanilla JS UI
 ├── outputs/                 # Generated audio (gitignored)
 ├── profiles/                # Saved voice profiles (gitignored)
-├── run.sh                   # One-command startup
+├── Dockerfile               # HuggingFace Spaces deployment
+├── run.sh                   # One-command local startup
 ├── setup.sh                 # Environment setup script
 └── README.md
-```
+\`\`\`
 
 ### Tech Stack
 
@@ -63,7 +74,7 @@ voice-clone/
 
 ### Install ffmpeg
 
-```bash
+\`\`\`bash
 # Ubuntu / Debian
 sudo apt install ffmpeg
 
@@ -72,31 +83,25 @@ brew install ffmpeg
 
 # Windows — download from https://www.gyan.dev/ffmpeg/builds/
 # unzip and add the bin/ folder to your PATH
-```
+\`\`\`
 
 ### Setup & Run
 
-```bash
+\`\`\`bash
 # Clone the repo
 git clone https://github.com/deepakroshan11/voice-clone.git
 cd voice-clone
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r backend/requirements.txt
+# Run setup (creates venv + installs deps)
+bash setup.sh
 
 # Start the server
 bash run.sh
-# OR manually:
-cd backend && uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
+\`\`\`
 
 Open **http://localhost:8000** in your browser.
 
-> **First run:** ChatterboxTTS will download ~2GB of model weights from HuggingFace. This is a one-time download — subsequent runs start in seconds.
+> **First run:** ChatterboxTTS will download ~2GB of model weights from HuggingFace. One-time download — subsequent runs start in seconds.
 
 ---
 
@@ -104,24 +109,18 @@ Open **http://localhost:8000** in your browser.
 
 ### ✅ Recommended: Hugging Face Spaces (Free, Docker)
 
-Hugging Face Spaces offers free CPU and GPU instances that can handle the ~2GB ChatterboxTTS model. This is the best free-tier option.
+\`\`\`bash
+git remote add hf https://huggingface.co/spaces/YOUR_HF_USERNAME/voxai
+git push hf main
+\`\`\`
 
-**See [`Dockerfile`](./Dockerfile) and [`app.py`](./app.py) in the repo root for the HF Spaces deployment.**
-
-Steps:
-1. Create a Space at [huggingface.co/spaces](https://huggingface.co/spaces)
-2. Choose **Docker** as the SDK
-3. Push this repo — the `Dockerfile` handles everything
-
-> 💡 Request a **ZeroGPU** grant on HF for free A100 GPU time — greatly speeds up cloning.
+> 💡 Request a **ZeroGPU** grant on HF for free A100 GPU time — reduces clone time from ~120s to ~10s.
 
 ---
 
 ## 📡 API Reference
 
 ### `POST /clone`
-
-Clone a voice.
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -133,32 +132,11 @@ Clone a voice.
 | `exaggeration` | float | 0.1–1.5, default 0.3 |
 | `cfg_weight` | float | 0.0–1.0, default 0.7 |
 
-**Returns:** `audio/wav` file at 48kHz
-
----
-
-### `POST /save-profile`
-
-Save a voice for reuse.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `profile_name` | string | Name for the profile |
-| `voice_sample` | file | Reference audio |
-
----
-
-### `GET /profiles`
-
-List saved voice profiles.
-
-### `DELETE /profiles/{name}`
-
-Delete a voice profile.
+**Returns:** `audio/wav` at 48kHz
 
 ### `GET /health`
 
-```json
+\`\`\`json
 {
   "status": "ok",
   "model_loaded": true,
@@ -168,33 +146,7 @@ Delete a voice profile.
   "output_sr": 48000,
   "version": "v8-definitive"
 }
-```
-
----
-
-## 🎨 UI Highlights
-
-- **Animated vinyl splash screen** with real-time waveform and loading progress
-- **Tab-based input** — drag-and-drop upload OR live disc recorder with waveform
-- **Inline language selector** with animated expand/collapse
-- **Real-time audio visualizer** on playback
-- **Toast notifications** for all state changes
-- Retro aesthetic: VT323 font, cream/ink palette, scanline overlays, custom cursor
-
----
-
-## ⚙️ Configuration
-
-Key constants in `backend/main.py`:
-
-```python
-CHATTERBOX_SR        = 24000   # model native sample rate
-OUTPUT_SR            = 48000   # broadcast output sample rate
-DEFAULT_EXAGGERATION = 0.3     # pitch stability (lower = more stable)
-DEFAULT_CFG_WEIGHT   = 0.7     # classifier-free guidance
-BEST_DURATION_S      = 15      # optimal reference audio length
-CHUNK_CHAR_LIMIT     = 130     # max chars per synthesis chunk
-```
+\`\`\`
 
 ---
 
@@ -203,23 +155,22 @@ CHUNK_CHAR_LIMIT     = 130     # max chars per synthesis chunk
 | Problem | Fix |
 |---------|-----|
 | `Cannot convert '.mp3'` error | Install ffmpeg and add to PATH |
-| `Model loading — please wait` on `/clone` | Wait ~60s after startup for model to load |
-| Out of memory (CUDA) | Switch to CPU: set `DEVICE = "cpu"` in main.py, or reduce text length |
-| Reference too short error | Record/upload at least 4 seconds (15–30s recommended) |
-| Audio sounds robotic | Use a clean recording (quiet room, no music), 15–30s, avoid WhatsApp compressed audio |
+| `Model loading — please wait` | Wait ~60s after startup |
+| Out of memory (CUDA) | Set `DEVICE = "cpu"` in main.py |
+| Reference too short | Upload at least 4 seconds (15–30s recommended) |
+| Audio sounds robotic | Quiet room, no music, 15–30s clean recording |
 
 ---
 
 ## 📄 License
 
-MIT — free for personal and commercial use. ChatterboxTTS is also MIT licensed.
+MIT — free for personal and commercial use.
 
 ---
 
 ## 👤 Author
 
-**Deepak Roshan**
-AI Engineer
+**Deepak Roshan** · AI Engineer
 [deepakroshan380@gmail.com](mailto:deepakroshan380@gmail.com) · [GitHub @deepakroshan11](https://github.com/deepakroshan11)
 
 ---

@@ -18,8 +18,7 @@ venv/
 env/
 ENV/
 
-# ─── Model weights & cache ────────────────────────
-# Chatterbox / HuggingFace weights are large — don't commit
+# ─── Model weights & HuggingFace cache ────────────
 *.pt
 *.pth
 *.ckpt
@@ -28,34 +27,34 @@ ENV/
 huggingface/
 
 # ─── Generated audio output ───────────────────────
-outputs/*.wav
-outputs/*.mp3
-outputs/*.ogg
+outputs/
+*.wav
+*.mp3
+*.ogg
+*.flac
 
-# ─── Voice profiles (personal — don't commit) ─────
-profiles/*.wav
-profiles/*.mp3
+# ─── Voice profiles (user data) ───────────────────
+profiles/
 
 # ─── Logs ─────────────────────────────────────────
 *.log
 logs/
 
-# ─── OS files ─────────────────────────────────────
+# ─── OS ───────────────────────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# ─── VS Code ──────────────────────────────────────
+# ─── VS Code (keep launch.json) ───────────────────
 .vscode/settings.json
-.vscode/launch.json
 .vscode/*.code-workspace
 
-# ─── Env / secrets ────────────────────────────────
+# ─── Secrets ──────────────────────────────────────
 .env
 .env.*
 *.secret
 
-# ─── Temp files ───────────────────────────────────
+# ─── Temp ─────────────────────────────────────────
 tmp/
 temp/
 *.tmp
