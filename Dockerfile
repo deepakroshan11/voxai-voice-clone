@@ -18,18 +18,15 @@ WORKDIR /app
 
 COPY backend/requirements.txt ./requirements.txt
 
-# ── Critical install order ──────────────────────────────────────────
-# 1. numpy must be in the GLOBAL site-packages before pkuseg builds,
-#    because pkuseg's setup.py calls `import numpy` at build time.
-#    pip's isolated build env does NOT inherit the parent env, so we
-#    must pre-seed numpy into the build cache via PIP_NO_BUILD_ISOLATION=0
-#    OR simply install numpy+pkuseg before everything else.
-#
-# 2. pkuseg must be installed (and compiled) before chatterbox-tts,
-#    so it is already satisfied when chatterbox pulls it in.
+# Install in strict order:
+# 1. numpy first (runtime + build dep)
+# 2. spacy-pkuseg — the maintained Python 3.11-compatible fork of pkuseg
+#    (chatterbox-tts pulls in pkuseg==0.0.25 which fails to compile on Py3.11
+#     due to removed longintrepr.h; spacy-pkuseg satisfies the same interface)
+# 3. Everything else
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir "numpy>=1.24.0,<2.0.0" && \
-    pip install --no-cache-dir --no-build-isolation "pkuseg==0.0.25" && \
+    pip install --no-cache-dir "spacy-pkuseg" && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY . .

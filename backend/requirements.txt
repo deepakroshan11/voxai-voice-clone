@@ -4,12 +4,11 @@ uvicorn[standard]==0.29.0
 python-multipart==0.0.9
 
 # ─── Chatterbox TTS ──────────────────────────────
-# chatterbox-tts==0.1.4 requires torch==2.6.0 and pkuseg==0.0.25
-# pkuseg is pre-installed in Dockerfile before this file runs
+# spacy-pkuseg pre-installed in Dockerfile satisfies pkuseg requirement
+# chatterbox-tts==0.1.4 requires torch==2.6.0
 chatterbox-tts==0.1.4
 
 # ─── PyTorch ─────────────────────────────────────
-# Must match chatterbox-tts==0.1.4 exact requirement
 torch==2.6.0
 torchaudio==2.6.0
 
