@@ -8,30 +8,28 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# HF Spaces runs on port 7860
 ENV PORT=7860
 ENV HOST=0.0.0.0
-# Cache HuggingFace model weights inside the container
 ENV HF_HOME=/app/.cache/huggingface
 ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Copy requirements first (layer cache — only reinstalls if requirements.txt changes)
 COPY backend/requirements.txt ./requirements.txt
 
-# Install Python deps
+# Step 1: numpy first (pkuseg needs it at build time)
+# Step 2: everything else
 RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir "numpy>=1.24.0,<2.0.0" && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the project
 COPY . .
 
-# Create runtime directories
-RUN mkdir -p outputs profiles .cache/huggingface
+RUN mkdir -p outputs profiles .cache/huggingface && \
+    chmod -R 777 outputs profiles .cache
 
-# HF Spaces requires port 7860
 EXPOSE 7860
 
-# Start server — running from /app so backend.main resolves correctly
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "1"]
