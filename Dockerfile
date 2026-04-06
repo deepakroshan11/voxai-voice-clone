@@ -21,38 +21,24 @@ WORKDIR /app
 COPY backend/requirements.txt ./requirements.txt
 
 # ── Python deps ────────────────────────────────────────────────────────────────
-# Install in strict order to work around pkuseg==0.0.25 build-isolation issue:
 #
-# Step 1 — Upgrade pip
-# Step 2 — Install numpy first (it is a build-time dep of pkuseg AND a runtime dep)
-# Step 3 — Install pkuseg with --no-build-isolation so it can see numpy in the
-#           outer environment instead of spinning up an isolated subprocess that
-#           cannot find numpy. This resolves the "ModuleNotFoundError: No module
-#           named 'numpy'" that kills the build on Python 3.11.
-# Step 4 — Install spacy-pkuseg (the maintained Python 3.11 compatible fork).
-#           chatterbox-tts declares `pkuseg` as a dep; pip will see pkuseg is
-#           already satisfied and skip the failing source-build.
-# Step 5 — Install everything else from requirements.txt.
-#           --no-deps on chatterbox-tts is NOT needed because pkuseg is already
-#           present, so pip won't re-download / re-build it.
-
+# ROOT CAUSE: pkuseg==0.0.25 uses longintrepr.h (removed from Python 3.11-slim)
+# and also fails pip's build-isolation (no numpy in subprocess).
+# It cannot be compiled on this image under any circumstances.
+#
+# SOLUTION:
+#   1. Install torch/torchaudio at the version chatterbox requires FIRST.
+#   2. Install all of chatterbox-tts's real runtime deps manually.
+#   3. Install chatterbox-tts itself with --no-deps so pip never resolves pkuseg.
+#   4. Install spacy-pkuseg as a runtime shim (same interface as pkuseg).
+#   5. Install the rest of requirements.txt — chatterbox is already present so
+#      pip won't re-resolve its deps and won't try to build pkuseg.
+#
 RUN pip install --no-cache-dir --upgrade pip \
-    \
-    # Step 1: numpy first — it's a build-dep for many packages below
-    && pip install --no-cache-dir "numpy>=1.24.0,<2.0.0" \
-    \
-    # Step 2: Install spacy-pkuseg — the Python 3.11-compatible drop-in for pkuseg.
-    # pkuseg==0.0.25 uses longintrepr.h which was removed from Python 3.11-slim
-    # and causes a fatal compile error. spacy-pkuseg ships pre-built wheels and
-    # exposes the same interface, so chatterbox-tts works without modification.
-    && pip install --no-cache-dir "spacy-pkuseg" \
-    \
-    # Step 3: Install chatterbox-tts WITHOUT its deps so pip doesn't pull in
-    # pkuseg==0.0.25 from PyPI. We satisfy all of chatterbox's real deps manually.
-    && pip install --no-cache-dir --no-deps "chatterbox-tts==0.1.4" \
-    \
-    # Step 4: Install chatterbox-tts' actual dependencies explicitly
-    # (librosa, s3tokenizer, transformers, diffusers, resemble-perth, conformer, safetensors)
+    && pip install --no-cache-dir \
+    "numpy>=1.24.0,<1.26.0" \
+    "torch==2.6.0" \
+    "torchaudio==2.6.0" \
     && pip install --no-cache-dir \
     "librosa==0.11.0" \
     "transformers==4.46.3" \
@@ -61,9 +47,10 @@ RUN pip install --no-cache-dir --upgrade pip \
     "conformer==0.3.2" \
     "resemble-perth==1.0.1" \
     "s3tokenizer" \
-    \
-    # Step 5: Install everything else from requirements.txt
-    # (torch, torchaudio, fastapi, uvicorn, soundfile, scipy …)
+    "pykakasi==2.3.0" \
+    "gradio==5.44.1" \
+    && pip install --no-cache-dir "spacy-pkuseg" \
+    && pip install --no-cache-dir --no-deps "chatterbox-tts==0.1.4" \
     && pip install --no-cache-dir -r requirements.txt
 
 # ── App source ─────────────────────────────────────────────────────────────────

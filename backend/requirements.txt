@@ -4,15 +4,15 @@ uvicorn[standard]==0.29.0
 python-multipart==0.0.9
 
 # ─── Chatterbox TTS ──────────────────────────────
-# pkuseg is pre-installed in the Dockerfile with --no-build-isolation
-# so pip will not try to rebuild it from source when installing chatterbox-tts.
-chatterbox-tts==0.1.4
+# chatterbox-tts is installed via Dockerfile with --no-deps BEFORE this file
+# is processed, so pip sees it as already satisfied and skips dep resolution.
+# DO NOT add chatterbox-tts here — it would trigger pkuseg resolution again.
 
 # ─── PyTorch ─────────────────────────────────────
 torch==2.6.0
 torchaudio==2.6.0
 
 # ─── Audio utilities ─────────────────────────────
-numpy>=1.24.0,<2.0.0
+numpy>=1.24.0,<1.26.0
 soundfile>=0.12.1
 scipy>=1.11.0
