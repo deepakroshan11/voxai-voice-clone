@@ -8,73 +8,134 @@ pinned: false
 app_port: 7860
 ---
 
+```
+██╗   ██╗ ██████╗ ██╗  ██╗ █████╗ ██╗
+██║   ██║██╔═══██╗╚██╗██╔╝██╔══██╗██║
+██║   ██║██║   ██║ ╚███╔╝ ███████║██║
+╚██╗ ██╔╝██║   ██║ ██╔██╗ ██╔══██║██║
+ ╚████╔╝ ╚██████╔╝██╔╝ ██╗██║  ██║██║
+  ╚═══╝   ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝
+```
+
 # 🎙️ VOXAI — Voice Clone Studio
 
 > **Sound Like Anyone — Instantly.**
 > Upload a voice sample, type your text, and hear it reborn in seconds using state-of-the-art neural voice cloning.
 
-![VOXAI Banner](https://img.shields.io/badge/VOXAI-Voice%20Clone%20Studio-cc2200?style=for-the-badge&logo=soundcloud&logoColor=white)
+**Live Demo → [https://huggingface.co/spaces/deepakroshan/voxai](https://huggingface.co/spaces/deepakroshan/voxai)**
+**GitHub → [https://github.com/deepakroshan11/voxai-voice-clone](https://github.com/deepakroshan11/voxai-voice-clone)**
+
+<div align="center">
+
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=flat-square&logo=fastapi&logoColor=white)
-![ChatterboxTTS](https://img.shields.io/badge/ChatterboxTTS-MIT-green?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+![ChatterboxTTS](https://img.shields.io/badge/Model-ChatterboxTTS-8B5CF6?style=flat-square)
+![HuggingFace](https://img.shields.io/badge/Live_on-HuggingFace_Spaces-yellow?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+![Platform](https://img.shields.io/badge/Platform-Windows%20|%20Linux%20|%20macOS-lightgray?style=flat-square)
+
+</div>
+
+---
+
+## What is VOXAI?
+
+**VOXAI** is a fully local, zero-shot voice cloning web app. Upload or record a short audio sample of any voice, type your text, and get a synthesised audio clip that sounds like that person — all running on your own machine with no internet, no API key, and no subscription.
+
+Powered by **[ChatterboxTTS](https://github.com/resemble-ai/chatterbox)** (Resemble AI, MIT licensed) — accent-preserving, CPU-friendly, no cloud dependency.
 
 ---
 
 ## ✨ Features
 
-- **Zero-shot voice cloning** — clone any voice from a 15–30 second audio sample
-- **Live recording** — record your reference voice directly in the browser (no file needed)
-- **Voice profiles** — save and reuse voices across sessions
-- **7-stage professional audio chain** — bass restoration, cepstral de-noising, bandwidth extension, multiband dynamics, room tone, EBU R128 loudness normalization, true-peak limiting
-- **48kHz broadcast-quality output** — upsampled from model's 24kHz via harmonic bandwidth extension
-- **Multi-format input** — WAV, MP3, OGG, M4A, FLAC, WebM all supported
-- **Retro vinyl UI** — animated splash screen, real-time waveform visualizer, vinyl disc recorder
-- **Language-ready** — English available; Tamil, Hindi, Telugu, Spanish, French, Japanese coming soon
+- 🎙️ **Live browser recording** — record your reference voice directly, no extra software
+- 📁 **Multi-format upload** — WAV, MP3, OGG, M4A, FLAC, WebM all supported
+- 👤 **Voice profiles** — save and reuse voices across sessions
+- 🌍 **Accent preservation** — better Tamil / Indian English fidelity vs XTTS v2
+- ⚡ **CPU + GPU** — works on any machine (GPU ~10× faster)
+- 🎛️ **Expressiveness controls** — Exaggeration & CFG weight sliders
+- 🔊 **7-stage professional audio chain** — bass restoration → cepstral de-noising → bandwidth extension → multiband dynamics → room tone → EBU R128 loudness normalisation → true-peak limiting
+- 📡 **48kHz broadcast-quality output** — upsampled from model's 24kHz via harmonic bandwidth extension
+- 🔒 **100% local** — nothing leaves your machine
+
+---
+
+## 📁 Project Structure
+
+```
+voxai-voice-clone/
+├── backend/
+│   ├── main.py              ← FastAPI app (Chatterbox TTS + 7-stage DSP)
+│   └── requirements.txt     ← Python dependencies
+├── frontend/
+│   └── index.html           ← Single-file vanilla JS UI (retro vinyl theme)
+├── outputs/                 ← Generated audio (gitignored)
+├── profiles/                ← Saved voice profiles (gitignored)
+├── Dockerfile               ← HuggingFace Spaces deployment
+├── run.sh                   ← One-command local startup
+├── setup.sh                 ← Environment setup script
+└── README.md
+```
 
 ---
 
 ## 🏗️ Architecture
 
-\`\`\`
-voice-clone/
-├── backend/
-│   ├── main.py              # FastAPI app — v8 Definitive Fix
-│   └── requirements.txt     # Python dependencies
-├── frontend/
-│   └── index.html           # Single-file vanilla JS UI
-├── outputs/                 # Generated audio (gitignored)
-├── profiles/                # Saved voice profiles (gitignored)
-├── Dockerfile               # HuggingFace Spaces deployment
-├── run.sh                   # One-command local startup
-├── setup.sh                 # Environment setup script
-└── README.md
-\`\`\`
+```
+Browser mic / file upload
+        │
+        ▼
+  WAV conversion (browser-side for recordings, ffmpeg for uploads)
+        │
+        ▼
+  Audio enhancement (high-pass filter → silence trim → normalise)
+        │
+        ▼
+  ChatterboxTTS  ←  your text  +  exaggeration / cfg_weight
+        │
+        ▼
+  7-stage DSP chain:
+    1. Bass restoration
+    2. Cepstral de-noising
+    3. Bandwidth extension (24kHz → 48kHz)
+    4. Multiband dynamics
+    5. Room tone
+    6. EBU R128 loudness normalisation
+    7. True-peak limiter
+        │
+        ▼
+  48kHz broadcast-quality WAV → streamed to browser
+```
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| TTS Engine | [ChatterboxTTS](https://github.com/resemble-ai/chatterbox) (MIT, local, no API key) |
+| TTS Engine | ChatterboxTTS (MIT, local, no API key) |
 | Backend | FastAPI 0.111 + Uvicorn |
 | Audio DSP | SciPy, torchaudio, NumPy |
-| Frontend | Vanilla JS + Canvas API |
-| Model Device | CUDA (auto) / CPU fallback |
+| Frontend | Vanilla JS + Canvas API (retro vinyl UI) |
+| Model device | CUDA (auto) / CPU fallback |
+| Cloud deploy | HuggingFace Spaces (Docker) |
 
 ---
 
-## 🚀 Local Setup
+## 🚀 Quick Start (Local)
 
 ### Prerequisites
 
-- Python 3.10 or 3.11
-- `ffmpeg` in PATH (for MP3/M4A/WebM uploads)
-- ~2GB disk space for model weights (downloaded once on first run)
-- GPU recommended (CUDA), CPU also works
+| Requirement | Version |
+|-------------|---------|
+| Python | 3.10 or 3.11 |
+| RAM | 8 GB minimum (16 GB recommended) |
+| Storage | ~3 GB (model weights + venv) |
+| ffmpeg | Optional — needed for MP3/M4A/WebM uploads |
+
+> **GPU (NVIDIA CUDA)** is optional but gives ~10× speed boost.
 
 ### Install ffmpeg
 
-\`\`\`bash
+```bash
 # Ubuntu / Debian
 sudo apt install ffmpeg
 
@@ -82,61 +143,63 @@ sudo apt install ffmpeg
 brew install ffmpeg
 
 # Windows — download from https://www.gyan.dev/ffmpeg/builds/
-# unzip and add the bin/ folder to your PATH
-\`\`\`
+# unzip and add the bin/ folder to PATH
+```
 
 ### Setup & Run
 
-\`\`\`bash
-# Clone the repo
-git clone https://github.com/deepakroshan11/voice-clone.git
-cd voice-clone
+```bash
+# 1. Clone the repo
+git clone https://github.com/deepakroshan11/voxai-voice-clone.git
+cd voxai-voice-clone
 
-# Run setup (creates venv + installs deps)
+# 2. Run setup (creates venv + installs deps)
 bash setup.sh
 
-# Start the server
+# 3. Start the server
 bash run.sh
-\`\`\`
+```
 
 Open **http://localhost:8000** in your browser.
 
-> **First run:** ChatterboxTTS will download ~2GB of model weights from HuggingFace. One-time download — subsequent runs start in seconds.
+> **First run:** ChatterboxTTS downloads ~2 GB of model weights from HuggingFace. One-time only — subsequent runs start in seconds.
+
+### Manual Setup (Windows PowerShell)
+
+```powershell
+cd voxai-voice-clone
+
+python -m venv venv
+venv\Scripts\activate
+
+pip install -r backend\requirements.txt
+
+cd backend
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
 
 ---
 
-## 🌐 Deployment
+## 🌐 Cloud Deployment
 
-### ✅ Recommended: Hugging Face Spaces (Free, Docker)
+### HuggingFace Spaces (Free, Docker)
 
-\`\`\`bash
+The repo includes a ready-to-use `Dockerfile`. Push to your HF Space:
+
+```bash
 git remote add hf https://huggingface.co/spaces/YOUR_HF_USERNAME/voxai
 git push hf main
-\`\`\`
+```
 
-> 💡 Request a **ZeroGPU** grant on HF for free A100 GPU time — reduces clone time from ~120s to ~10s.
+> 💡 Request a **ZeroGPU** grant on HF for free A100 GPU time — reduces clone time from ~120s to ~10s on CPU.
 
 ---
 
 ## 📡 API Reference
 
-### `POST /clone`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `text` | string | Text to synthesize (max 500 chars) |
-| `voice_sample` | file | WAV/MP3/OGG audio (15–30s recommended) |
-| `profile_name` | string | Use a saved profile instead of uploading |
-| `language` | string | `en` (default) |
-| `speed` | float | 0.5–2.0, default 1.0 |
-| `exaggeration` | float | 0.1–1.5, default 0.3 |
-| `cfg_weight` | float | 0.0–1.0, default 0.7 |
-
-**Returns:** `audio/wav` at 48kHz
-
 ### `GET /health`
 
-\`\`\`json
+```json
 {
   "status": "ok",
   "model_loaded": true,
@@ -146,7 +209,40 @@ git push hf main
   "output_sr": 48000,
   "version": "v8-definitive"
 }
-\`\`\`
+```
+
+### `POST /clone`
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `text` | string | required | Text to synthesise (max 500 chars) |
+| `voice_sample` | file | — | WAV/MP3/OGG/M4A audio (15–30s recommended) |
+| `profile_name` | string | — | Use a saved profile instead of uploading |
+| `language` | string | `en` | Language code |
+| `speed` | float | `1.0` | Playback speed (0.5–2.0) |
+| `exaggeration` | float | `0.5` | 0 = flat, 1 = very expressive |
+| `cfg_weight` | float | `0.5` | 0 = sounds like you, 1 = follows text closely |
+
+**Returns:** `audio/wav` at 48kHz
+
+### Other Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/save-profile` | Save a voice profile |
+| `GET` | `/profiles` | List saved profiles |
+| `DELETE` | `/profiles/{name}` | Delete a profile |
+| `GET` | `/docs` | Interactive Swagger API docs |
+
+---
+
+## 🎯 Tips for Best Quality
+
+1. **Record 15–20 seconds** of natural speech — biggest single improvement
+2. **Quiet room** — background noise significantly hurts quality
+3. **Speak naturally** at your normal pace, not slowly or carefully
+4. **Use WAV or M4A** from a phone voice memo for best mic quality
+5. **Save as a profile** so you don't re-upload every time
 
 ---
 
@@ -155,10 +251,11 @@ git push hf main
 | Problem | Fix |
 |---------|-----|
 | `Cannot convert '.mp3'` error | Install ffmpeg and add to PATH |
-| `Model loading — please wait` | Wait ~60s after startup |
-| Out of memory (CUDA) | Set `DEVICE = "cpu"` in main.py |
+| `Model loading — please wait` | Wait ~60s after first startup |
+| Out of memory (CUDA) | Set `DEVICE = "cpu"` in `backend/main.py` |
 | Reference too short | Upload at least 4 seconds (15–30s recommended) |
 | Audio sounds robotic | Quiet room, no music, 15–30s clean recording |
+| Port 8000 already in use | `lsof -ti:8000 \| xargs kill -9` |
 
 ---
 
@@ -175,4 +272,10 @@ MIT — free for personal and commercial use.
 
 ---
 
+<div align="center">
+
 *VOXAI · Voice Clone Studio · Est. 2025*
+
+![VOXAI](https://img.shields.io/badge/VOXAI-Voice%20Clone%20Studio-cc2200?style=for-the-badge&logo=soundcloud&logoColor=white)
+
+</div>
