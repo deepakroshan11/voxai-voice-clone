@@ -1476,6 +1476,15 @@ async def list_profiles():
                         "has_transcript": bool(m.get("ref_text"))})
     return {"profiles": names, "details": details}
 
+@app.get("/profiles/{name}/audio")
+async def profile_audio(name: str):
+    """The saved voice sample, so the page can play it before using the profile."""
+    name = _safe_profile(name)
+    p = PROFILE_DIR / f"{name}.wav"
+    if not p.exists():
+        raise HTTPException(404, f"Profile '{name}' not found")
+    return FileResponse(str(p), media_type="audio/wav", headers={"Cache-Control": "no-cache"})
+
 @app.delete("/profiles/{name}")
 async def delete_profile(name: str):
     name = _safe_profile(name)

@@ -2824,24 +2824,15 @@
           </div>
         </div>
         <div class="indic-box" id="indic-box">
-          <div class="indic-lbl">Read-aloud script (<span id="indic-lname">Tamil</span>)</div>
-          <div class="indic-script" id="indic-script"></div>
-          <button class="indic-use" type="button" id="indic-use">USE THIS SCRIPT AS TRANSCRIPT</button>
-          <div class="indic-lbl">Transcript of your voice sample (optional)</div>
-          <textarea id="rt" placeholder="Leave empty — the exact words in your sample are detected automatically…"></textarea>
+          <!-- transcript of the sample: filled by auto-detect / the server, not typed -->
+          <textarea id="rt" hidden></textarea>
           <button class="indic-use" type="button" id="indic-detect">AUTO-DETECT WORDS IN MY SAMPLE</button>
+          <div class="indic-note" id="rt-show" style="display:none;margin-bottom:10px"></div>
           <div class="indic-lbl">Speaking style</div>
           <select id="tstyle" class="indic-style">
             <option value="spoken">Natural spoken Tamil (பேச்சுத் தமிழ்) — recommended</option>
             <option value="formal">Formal / as written (எழுத்துத் தமிழ்)</option>
           </select>
-          <div class="indic-note">
-            Use a 5–30 s sample of natural speech (the best 12 s are used). The transcript must match the sample
-            <b>word for word</b> (a wrong one makes words go missing), so leave it empty
-            or press auto-detect and check it.
-            “Natural spoken” turns written forms into everyday speech
-            (இருக்கிறது → இருக்கு, போகிறேன் → போறேன், அவர்கள் → அவங்க).
-          </div>
           <div class="indic-note" id="spoken-out" style="display:none"></div>
         </div>
       </div>
@@ -3148,6 +3139,11 @@
       ta: { name: 'Tamil', script: 'வணக்கம்! இன்னைக்கு வானிலை ரொம்ப அழகா இருக்கு. நான் என் ஃப்ரெண்ட்ஸோட பீச்சுக்கு போய், சூடா ஒரு டீ குடிச்சுட்டு, ஜாலியா பேசிக்கிட்டு இருந்தோம்.' },
     };
     const curLang = () => document.getElementById('ls').value || 'en';
+    function setRt(t) {   // transcript of the voice sample (hidden box) + one visible line
+      t = (t || '').trim(); document.getElementById('rt').value = t;
+      const s = document.getElementById('rt-show');
+      s.textContent = t ? 'Words in your sample: ' + t : ''; s.style.display = t ? 'block' : 'none';
+    }
     function onLangChange() {
       const L = INDIC[curLang()];
       document.getElementById('indic-box').classList.toggle('on', !!L);
@@ -3156,8 +3152,6 @@
       const rs = document.getElementById('rec-script');
       rs.classList.toggle('on', !!L);
       if (L) {
-        document.getElementById('indic-lname').textContent = L.name;
-        document.getElementById('indic-script').textContent = L.script;
         rs.textContent = 'READ THIS ALOUD: ' + L.script;
       }
       document.getElementById('dz-hint').textContent = L
@@ -3171,10 +3165,6 @@
         : 'Type what you want to say in the cloned voice…\n\nNatural sentences with punctuation produce the best timing and pacing.';
     }
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('indic-use').addEventListener('click', () => {
-        const L = INDIC[curLang()]; if (!L) return;
-        document.getElementById('rt').value = L.script; toast('TRANSCRIPT SET', 'ok');
-      });
       document.querySelectorAll('.tag-chip').forEach(b => b.addEventListener('click', () => {
         const ta = document.getElementById('ti'), tag = ' ' + b.textContent + ' ';
         const i = ta.selectionStart ?? ta.value.length, j = ta.selectionEnd ?? i;
@@ -3193,7 +3183,7 @@
           const r = await fetch(`${API}/transcribe`, { method: 'POST', body: fd });
           const j = await r.json();
           if (!r.ok) throw new Error(j.detail || 'FAILED');
-          document.getElementById('rt').value = j.text;
+          setRt(j.text);
           toast('DETECTED — CHECK THE WORDS', 'ok');
         } catch (e) { toast(String(e.message).toUpperCase(), 'er') }
         finally { btn.disabled = false; btn.textContent = 'AUTO-DETECT WORDS IN MY SAMPLE' }
@@ -3480,7 +3470,7 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && XP.el.classList.contains('on')) xpClose(); });
 
     function setFile(f) {
-      if (!f) return; S.file = f; S.rec = null; S.selProf = null; $('rt').value = '';
+      if (!f) return; S.file = f; S.rec = null; S.selProf = null; setRt('');
       D.fn.textContent = f.name; D.fcho.classList.add('on');
       D.srcDone.classList.add('on'); showPreview(f, 'Your sample · ' + f.name); S.coachArm = true;
       renderProfs(); toast('LOADED: ' + f.name.toUpperCase(), 'ok');
@@ -3556,7 +3546,7 @@
         S.mr.onstop = async () => {
           const raw = new Blob(S.chunks, { type: S.mr.mimeType || 'audio/webm' });
           toast('PROCESSING_', '');
-          try { S.rec = await blobToWav(raw); S.file = null; S.selProf = null; $('rt').value = ''; D.srcDone.classList.add('on'); showPreview(S.rec, 'Your recording'); S.coachArm = true; renderProfs(); toast('CAPTURED!', 'ok'); }
+          try { S.rec = await blobToWav(raw); S.file = null; S.selProf = null; setRt(''); D.srcDone.classList.add('on'); showPreview(S.rec, 'Your recording'); S.coachArm = true; renderProfs(); toast('CAPTURED!', 'ok'); }
           catch (e) { toast('ERROR: ' + e.message.toUpperCase(), 'er') }
         };
         S.mr.start(250); S.recording = true;
@@ -3774,7 +3764,7 @@
           so.style.display = 'block';
           so.textContent = 'Spoken: ' + decodeURIComponent(spoken);
           const replaced = r.headers.get('X-Ref-Replaced') === '1';
-          if (refUsed && (replaced || !$('rt').value.trim())) $('rt').value = decodeURIComponent(refUsed);
+          if (refUsed && (replaced || !$('rt').value.trim())) setRt(decodeURIComponent(refUsed));
           if (replaced) toast('YOUR TRANSCRIPT DID NOT MATCH THE SAMPLE — USED THE DETECTED WORDS', '');
         } else so.style.display = 'none';
         showResult(await r.blob());
@@ -3805,6 +3795,58 @@
       }
       catch { S.profiles = []; S.profDetails = {} } renderProfs();
     }
+    /* PROFILE BOX — click a saved voice: faded page, its sample with play / pause and the
+       waveform track, and a button to use it for cloning (GET /profiles/{name}/audio). */
+    (function buildProfileBox() {
+      const x = document.createElement('div'); x.className = 'xp'; x.id = 'pp';
+      x.innerHTML =
+        '<div class="xp-bg" id="pp-bg"></div>' +
+        '<div class="xp-card" role="dialog" aria-modal="true" aria-labelledby="pp-t">' +
+        '<button type="button" class="coach-x" id="pp-x" aria-label="Close">✕</button>' +
+        '<div class="coach-k">Saved voice</div>' +
+        '<div class="coach-t" id="pp-t"></div>' +
+        '<div class="pv-top"><div class="pv-lbl" id="pp-lbl"></div>' +
+        '<div class="pv-time"><b id="pp-cur">0:00</b><span> / <i id="pp-dur">0:00</i></span></div></div>' +
+        '<div class="pv-row"><button class="play-btn" id="pp-play" type="button" aria-label="Play this voice">' +
+        '<svg id="pp-ico" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>' +
+        '<div class="pv-track" id="pp-track" tabindex="0" role="slider" aria-label="Position in this voice" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">' +
+        '<canvas id="pp-cv"></canvas><div class="pv-ghost" id="pp-ghost"></div><div class="pv-ph" id="pp-ph"></div><div class="pv-tip" id="pp-tip">0:00</div></div></div>' +
+        '<audio id="pp-au" preload="auto"></audio>' +
+        '<div class="xp-foot"><span class="xp-desc">Listen, then use it to clone</span>' +
+        '<button type="button" class="xp-go" id="pp-use">Use this voice</button></div></div>';
+      document.body.appendChild(x);
+    })();
+    const PPW = makeWavePlayer({
+      au: $('pp-au'), btn: $('pp-play'), ico: $('pp-ico'), track: $('pp-track'), cv: $('pp-cv'),
+      ph: $('pp-ph'), ghost: $('pp-ghost'), tip: $('pp-tip'), cur: $('pp-cur'), dur: $('pp-dur')
+    }, 'this voice');
+    let ppName = null;
+    async function openProfile(p) {
+      ppName = p;
+      const pd = (S.profDetails || {})[p];
+      $('pp-t').textContent = p;
+      $('pp-lbl').textContent = pd && pd.language === 'ta' ? 'Tamil voice sample' : 'Voice sample';
+      $('pp-use').textContent = S.selProf === p ? 'Stop using this voice' : 'Use this voice';
+      $('pp').classList.add('on');
+      try {
+        const r = await fetch(`${API}/profiles/${encodeURIComponent(p)}/audio`, { cache: 'no-store' });
+        if (!r.ok) throw new Error('VOICE AUDIO NOT FOUND');
+        const b = await r.blob();
+        if (ppName === p && $('pp').classList.contains('on')) PPW.load(b);
+      } catch (e) { toast(String(e.message).toUpperCase(), 'er'); }
+    }
+    function closeProfile() { PPW.pause(); $('pp').classList.remove('on'); }
+    $('pp-use').addEventListener('click', () => {
+      const p = ppName; if (!p) return;
+      S.selProf = S.selProf === p ? null : p; setRt('');
+      if (S.selProf) { S.file = null; S.rec = null; hidePreview(); }
+      renderProfs(); closeProfile();
+      toast(S.selProf ? `"${p.toUpperCase()}" SELECTED` : 'VOICE UNSELECTED', 'ok');
+    });
+    $('pp-x').addEventListener('click', closeProfile);
+    $('pp-bg').addEventListener('click', closeProfile);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('pp').classList.contains('on')) closeProfile(); });
+
     function renderProfs() {
       const el = D.pl2;
       if (!S.profiles.length) { el.innerHTML = '<span class="no-prof">no profiles saved yet_</span>'; return }
@@ -3816,8 +3858,7 @@
         t.innerHTML = `<span>${p}</span>${tag}<span class="prof-x" data-p="${p}">×</span>`;
         t.addEventListener('click', e => {
           const dp = e.target.dataset.p; if (dp) { delProf(dp); return }
-          S.selProf = S.selProf === p ? null : p; $('rt').value = ''; if (S.selProf) { S.file = null; S.rec = null; hidePreview(); }
-          renderProfs(); if (S.selProf) toast(`"${p.toUpperCase()}" SELECTED`, 'ok');
+          openProfile(p);   // listen first, then use it
         }); el.appendChild(t);
       });
     }
