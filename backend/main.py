@@ -7,7 +7,7 @@ import torchaudio
 from scipy import signal as sp
 from scipy.io import wavfile
 from scipy.fft import rfft, rfftfreq, irfft
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -18,6 +18,7 @@ _sys.path.insert(0, str(Path(__file__).resolve().parent))   # sibling modules, a
 from tamil_text import prepare_for_tts
 import asr
 import voiceprep as vp
+import activity
 from urllib.parse import quote as _quote
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
@@ -1208,12 +1209,14 @@ def _resolve_voice(voice_sample, profile_name, crop: bool) -> tuple:
             speaker_wav, ref_info = prepare_audio(raw, voice_sample.filename or "upload.wav", crop=crop)
         except RuntimeError as e:
             raise HTTPException(400, str(e))
-        return speaker_wav, "upload:" + hashlib.sha1(raw).hexdigest(), ref_info, speaker_wav, {}
+        return (speaker_wav, "upload:" + hashlib.sha1(raw).hexdigest(), ref_info, speaker_wav,
+                {"_raw": raw, "_fname": voice_sample.filename or "upload.wav"})
     raise HTTPException(400, "Provide a voice sample or select a saved profile")
 
 
 @app.post("/perform")
 def perform(
+    request:      Request,
     guide_audio:  UploadFile = File(...),     # the user reading the line, any language
     voice_sample: UploadFile = File(None),
     profile_name: str        = Form(None),
@@ -1226,7 +1229,7 @@ def perform(
     tmp_speaker = guide_raw = guide_wav = None
     out_path = OUTPUT_DIR / f"{uuid.uuid4().hex}.wav"
     try:
-        speaker_wav, voice_key, _, tmp_speaker, _ = _resolve_voice(voice_sample, profile_name, crop=True)
+        speaker_wav, voice_key, _, tmp_speaker, vmeta = _resolve_voice(voice_sample, profile_name, crop=True)
         data = guide_audio.file.read()
         ext = Path(guide_audio.filename or "guide.wav").suffix.lower() or ".wav"
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
@@ -1253,6 +1256,9 @@ def perform(
         try: os.unlink(raw_wav_path)
         except OSError: pass
         logger.info("Done [perform]: %.1fs @ %dHz", len(processed) / out_sr, out_sr)
+        activity.record("perform", activity.user_id(request), data, guide_audio.filename or "guide.wav",
+                        str(out_path), {"voice": f"profile:{profile_name}" if profile_name else
+                                        f"upload:{vmeta.get('_fname', '')}", "seconds": round(len(processed) / out_sr, 2)})
         return FileResponse(str(out_path), media_type="audio/wav", filename="performed_voice.wav",
                             headers={"X-Voice-Prep": _quote(prep_note)})
     except HTTPException:
@@ -1271,6 +1277,7 @@ def perform(
 # synthesis no longer freezes /health and other requests.
 @app.post("/clone")
 def clone(
+    request:      Request,
     text:         str        = Form(...),
     language:     str        = Form("en"),
     speed:        float      = Form(1.0),
@@ -1359,6 +1366,12 @@ def clone(
         except OSError: pass
 
         logger.info("Done [%s/%s]: %.1fs @ %dHz", engine, language, len(processed)/out_sr, out_sr)
+        activity.record("clone", activity.user_id(request),
+                        meta.get("_raw") or speaker_wav,
+                        meta.get("_fname") or f"profile-{profile_name}.wav", str(out_path),
+                        {"language": language, "text": text, "spoken_text": spoken_text or text,
+                         "voice": f"profile:{profile_name}" if profile_name else "upload",
+                         "seconds": round(len(processed) / out_sr, 2), "speed": speed})
 
         headers = {"X-Voice-Prep": _quote(prep_note),
                    "X-Rhythm": f"short={rhythm['comma']:.2f};long={rhythm['sentence']:.2f}"}
