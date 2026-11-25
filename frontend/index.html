@@ -549,9 +549,13 @@
       width: clamp(220px, 55vw, 520px);
       height: clamp(36px, 7vw, 60px);
       margin-top: clamp(14px, 2.5vw, 22px);
-      animation: slideUp .6s 1.1s ease both;
-      opacity: 0;
-      animation-fill-mode: both
+      /* bursts out from the centre the moment the record lands (throw: .2s delay + 1.1s) */
+      animation: waveIn .4s 1.3s cubic-bezier(.2, .8, .3, 1) both
+    }
+
+    @keyframes waveIn {
+      from { opacity: 0; clip-path: inset(0 50% 0 50%) }
+      to { opacity: 1; clip-path: inset(0 0 0 0) }
     }
 
 
@@ -2882,7 +2886,8 @@
       const vinylCv = document.getElementById('intro-vinyl-cv');
 
 
-      let W, H, t = 0, entered = false, creamMode = false;
+      let W, H, t = 0, tw = 0, entered = false, creamMode = false;
+      const WAVE_SPEED = 2.5;   // wave motion vs. the old speed
 
       function resize() { W = bgCv.width = window.innerWidth; H = bgCv.height = window.innerHeight; }
       resize(); window.addEventListener('resize', resize);
@@ -2936,14 +2941,14 @@
         const mid = H2 / 2;
         waveCx.save(); waveCx.strokeStyle = creamMode ? 'rgba(26,23,20,.05)' : 'rgba(237,233,224,.04)'; waveCx.lineWidth = 10; waveCx.beginPath();
         for (let i = 0; i <= W2; i++) {
-          let y = 0; waveHarmonics.forEach(h => { y += Math.sin(i * h.f + t * h.s + h.p) * h.a; });
-          const e = .55 + .45 * Math.sin(i * .018 + t * .28);
+          let y = 0; waveHarmonics.forEach(h => { y += Math.sin(i * h.f + tw * h.s + h.p) * h.a; });
+          const e = .55 + .45 * Math.sin(i * .018 + tw * .28);
           i === 0 ? waveCx.moveTo(i, mid + y * e * mid * .82) : waveCx.lineTo(i, mid + y * e * mid * .82);
         } waveCx.stroke(); waveCx.restore();
         waveCx.save(); waveCx.strokeStyle = creamMode ? 'rgba(26,23,20,.75)' : 'rgba(237,233,224,.7)'; waveCx.lineWidth = 1.8; waveCx.beginPath();
         for (let i = 0; i <= W2; i++) {
-          let y = 0; waveHarmonics.forEach(h => { y += Math.sin(i * h.f + t * h.s + h.p) * h.a; });
-          const e = .55 + .45 * Math.sin(i * .018 + t * .28);
+          let y = 0; waveHarmonics.forEach(h => { y += Math.sin(i * h.f + tw * h.s + h.p) * h.a; });
+          const e = .55 + .45 * Math.sin(i * .018 + tw * .28);
           i === 0 ? waveCx.moveTo(i, mid + y * e * mid * .82) : waveCx.lineTo(i, mid + y * e * mid * .82);
         } waveCx.stroke(); waveCx.restore();
       }
@@ -2969,7 +2974,7 @@
       }
 
       function animate() {
-        requestAnimationFrame(animate); t += .019;
+        requestAnimationFrame(animate); t += .019; tw += .019 * WAVE_SPEED;
         drawBg(); drawWave(); drawVinylWave();
       }
       animate();
