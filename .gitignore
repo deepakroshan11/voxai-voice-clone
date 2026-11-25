@@ -63,7 +63,7 @@ temp/
 # ─── Local-only (laptop venvs, backups, personal samples) ──
 venv-indic/
 venv-backup-requirements.txt
-frontend/index.before-preview.html
+frontend/index.before-*.html
 sample audio/
 {backend,frontend*/
 

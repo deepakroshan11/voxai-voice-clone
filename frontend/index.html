@@ -59,26 +59,6 @@
       font-family: var(--mono)
     }
 
-    #intro.exit {
-      animation: introExit 1.1s cubic-bezier(.77, 0, .18, 1) forwards
-    }
-
-    @keyframes introExit {
-      0% {
-        transform: translateY(0);
-        opacity: 1
-      }
-
-      30% {
-        transform: translateY(-2%);
-        opacity: 1
-      }
-
-      100% {
-        transform: translateY(-100%);
-        opacity: 1
-      }
-    }
 
     #intro-bg {
       position: absolute;
@@ -269,18 +249,38 @@
       width: clamp(180px, 30vw, 280px);
       height: clamp(180px, 30vw, 280px);
       margin-bottom: clamp(20px, 4vw, 36px);
-      animation: recordDrop 1.2s .0s cubic-bezier(.34, 1.56, .64, 1) both
+      perspective: 900px
     }
 
-    @keyframes recordDrop {
-      from {
+    /* the record is thrown in from the lower left, tilted (seen from a low angle),
+       spinning like a frisbee, and lands flat in the centre */
+    .vinyl-rec {
+      position: absolute;
+      inset: 0;
+      animation: discThrow 1.1s .2s cubic-bezier(.16, .72, .3, 1) both
+    }
+
+    @keyframes discThrow {
+      0% {
         opacity: 0;
-        transform: scale(.5) rotate(-20deg)
+        transform: translate(-78vw, 46vh) rotateX(74deg) rotateZ(-260deg) scale(.5)
       }
 
-      to {
+      10% {
+        opacity: 1
+      }
+
+      72% {
+        transform: translate(3vw, -2vh) rotateX(16deg) rotateZ(-8deg) scale(1.05)
+      }
+
+      88% {
+        transform: translate(-.6vw, .4vh) rotateX(-5deg) rotateZ(3deg) scale(.99)
+      }
+
+      100% {
         opacity: 1;
-        transform: scale(1) rotate(0deg)
+        transform: none
       }
     }
 
@@ -435,40 +435,35 @@
       }
     }
 
+    /* tonearm: pivots outside the record (top right); starts OPEN (resting beside
+       the record) and swings down onto the grooves once the record has landed */
     .vinyl-arm {
       position: absolute;
-      width: clamp(60px, 12vw, 110px);
+      width: 70%;
       height: 3px;
-      background: linear-gradient(90deg, rgba(200, 190, 175, .6), rgba(200, 190, 175, .15));
-      top: 50%;
-      right: -clamp(50px, 9vw, 80px);
+      left: 36%;
+      top: 8%;
+      background: linear-gradient(90deg, rgba(220, 210, 195, .95), rgba(200, 190, 175, .5));
       transform-origin: right center;
-      transform: translateY(-50%) rotate(-28deg);
+      transform: rotate(-95deg);
       z-index: 5;
       border-radius: 2px;
-      animation: armSettle 1.4s .8s cubic-bezier(.34, 1.56, .64, 1) both
+      animation: fadeIn .4s .15s ease both;
+      transition: transform .5s cubic-bezier(.34, 1.45, .64, 1), background .5s .25s
     }
 
-    @keyframes armSettle {
-      from {
-        transform: translateY(-50%) rotate(-55deg);
-        opacity: 0
-      }
-
-      to {
-        transform: translateY(-50%) rotate(-28deg);
-        opacity: 1
-      }
+    #intro.armdown .vinyl-arm {
+      transform: rotate(-60deg)
     }
 
     .vinyl-arm::before {
       content: '';
       position: absolute;
-      right: -4px;
+      right: -6px;
       top: 50%;
       transform: translateY(-50%);
-      width: 8px;
-      height: 8px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background: rgba(200, 190, 175, .8);
       box-shadow: 0 0 4px rgba(0, 0, 0, .5)
@@ -477,13 +472,13 @@
     .vinyl-arm::after {
       content: '';
       position: absolute;
-      left: 0;
+      left: -2px;
       top: 50%;
       transform: translateY(-50%);
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: rgba(200, 190, 175, .4)
+      width: 11px;
+      height: 6px;
+      border-radius: 1px;
+      background: rgba(220, 210, 195, .9)
     }
 
     .intro-logo {
@@ -562,7 +557,7 @@
     .intro-loader {
       width: clamp(160px, 38vw, 320px);
       margin-top: clamp(14px, 2.5vw, 22px);
-      animation: slideUp .5s 1.3s ease both
+      animation: slideUp .5s .6s ease both
     }
 
     .intro-progbar {
@@ -693,6 +688,59 @@
     .intro-eqbar:nth-child(7) {
       height: 9px;
       animation-delay: .72s
+    }
+
+    /* -- sequence: arm down -> cream wave from the disc -> zoom toward the viewer -> fade -- */
+    #intro.armdown .vinyl-wave-cv { opacity: 1 }
+
+    .intro-burst {
+      position: absolute;
+      z-index: 3;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: var(--cream);
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0);
+      transition: transform .9s cubic-bezier(.2, .65, .25, 1)
+    }
+
+    #intro.cream .intro-burst { transform: translate(-50%, -50%) scale(1) }
+
+    #intro { transition: background .4s ease .55s, opacity .65s ease }
+    #intro.cream { background: var(--cream) }
+    #intro::before, #intro::after, #intro-bg, .intro-grain { transition: opacity .6s ease .2s }
+    #intro.cream::before, #intro.cream::after, #intro.cream #intro-bg { opacity: 0 }
+    #intro.cream .intro-grain { opacity: .1 }
+
+    .intro-logo, .intro-logo-line, .intro-eyebrow, .intro-eyebrow::before, .intro-eyebrow::after,
+    .intro-tagline, .intro-progbar, .intro-progfill, .intro-status, .intro-pct, .intro-corner,
+    .intro-hline, .intro-side, .intro-bottom-txt, .intro-eqbar {
+      transition: color .5s .25s, background .5s .25s, border-color .5s .25s, text-shadow .5s .25s
+    }
+    #intro.cream .intro-logo { color: var(--ink); text-shadow: 4px 4px 0 rgba(26, 23, 20, .12) }
+    #intro.cream .intro-logo-line { background: linear-gradient(90deg, transparent, rgba(26, 23, 20, .55) 50%, transparent) }
+    #intro.cream .intro-eyebrow, #intro.cream .intro-tagline { color: var(--muted2) }
+    #intro.cream .intro-eyebrow::before, #intro.cream .intro-eyebrow::after { background: linear-gradient(90deg, transparent, rgba(26, 23, 20, .35)) }
+    #intro.cream .intro-progbar { background: rgba(26, 23, 20, .06); border-color: rgba(26, 23, 20, .18) }
+    #intro.cream .intro-progfill { background: repeating-linear-gradient(90deg, rgba(26, 23, 20, .6) 0px, rgba(26, 23, 20, .6) 5px, rgba(26, 23, 20, .15) 5px, rgba(26, 23, 20, .15) 10px) }
+    #intro.cream .intro-status { color: var(--muted) }
+    #intro.cream .intro-pct { color: var(--muted2) }
+    #intro.cream .intro-corner { border-color: rgba(26, 23, 20, .3) }
+    #intro.cream .intro-hline { background: linear-gradient(90deg, transparent, rgba(26, 23, 20, .15), transparent) }
+    #intro.cream .intro-side, #intro.cream .intro-bottom-txt { color: rgba(26, 23, 20, .4) }
+    #intro.cream .intro-eqbar { background: rgba(26, 23, 20, .35) }
+    #intro.cream .vinyl-arm { background: linear-gradient(90deg, var(--ink), var(--ink3)) }
+    #intro.cream .vinyl-arm::before, #intro.cream .vinyl-arm::after { background: var(--ink) }
+
+    .intro-content { transition: transform 1s cubic-bezier(.55, 0, .8, .35), opacity .65s ease .35s, filter .65s ease .35s }
+    #intro.zoom .intro-content { transform: scale(3.4); opacity: 0; filter: blur(5px) }
+    #intro.gone { opacity: 0 }
+
+    @media (prefers-reduced-motion: reduce) {
+      .vinyl-rec { animation: fadeIn .4s ease both }
+      #intro.zoom .intro-content { transform: none }
+      .intro-burst { transition-duration: .01s }
     }
 
     @keyframes eqBar {
@@ -2532,6 +2580,7 @@
   <!-- INTRO SPLASH -->
   <div id="intro">
     <canvas id="intro-bg"></canvas>
+    <div class="intro-burst" id="intro-burst"></div>
     <div class="intro-grain"></div>
     <div class="intro-corner tl"></div>
     <div class="intro-corner tr"></div>
@@ -2546,16 +2595,18 @@
       <div class="intro-eyebrow">Voice Clone Studio · Est. 2025</div>
 
       <div class="vinyl-stage" id="vinyl-stage">
-        <div class="vinyl-ring"></div>
-        <div class="vinyl-ring"></div>
-        <div class="vinyl-ring"></div>
-        <div class="vinyl-disc" id="intro-disc"></div>
-        <div class="vinyl-sheen"></div>
-        <canvas class="vinyl-wave-cv" id="intro-vinyl-cv"></canvas>
-        <div class="vinyl-label">
-          <div class="vinyl-label-logo">VOX</div>
-          <div class="vinyl-label-sub">AI</div>
-          <div class="vinyl-hole"></div>
+        <div class="vinyl-rec" id="vinyl-rec"><!-- the record: thrown in; the arm stays mounted -->
+          <div class="vinyl-ring"></div>
+          <div class="vinyl-ring"></div>
+          <div class="vinyl-ring"></div>
+          <div class="vinyl-disc" id="intro-disc"></div>
+          <div class="vinyl-sheen"></div>
+          <canvas class="vinyl-wave-cv" id="intro-vinyl-cv"></canvas>
+          <div class="vinyl-label">
+            <div class="vinyl-label-logo">VOX</div>
+            <div class="vinyl-label-sub">AI</div>
+            <div class="vinyl-hole"></div>
+          </div>
         </div>
         <div class="vinyl-arm"></div>
       </div>
@@ -2574,7 +2625,6 @@
           <div class="intro-pct" id="intro-pct-txt">0%</div>
         </div>
       </div>
-      <div class="intro-enter" id="intro-enter">[ PRESS ANYWHERE TO ENTER ]</div>
     </div>
 
     <div class="intro-bottom">
@@ -2940,9 +2990,9 @@
       const fillEl = document.getElementById('intro-fill');
       const statusEl = document.getElementById('intro-status-txt');
       const pctEl = document.getElementById('intro-pct-txt');
-      const enterEl = document.getElementById('intro-enter');
 
-      let W, H, t = 0, entered = false, loaded = false;
+
+      let W, H, t = 0, entered = false, creamMode = false;
 
       function resize() { W = bgCv.width = window.innerWidth; H = bgCv.height = window.innerHeight; }
       resize(); window.addEventListener('resize', resize);
@@ -2994,13 +3044,13 @@
         const H2 = waveCv.height = waveCv.offsetHeight || 50;
         waveCx.clearRect(0, 0, W2, H2);
         const mid = H2 / 2;
-        waveCx.save(); waveCx.strokeStyle = 'rgba(237,233,224,.04)'; waveCx.lineWidth = 10; waveCx.beginPath();
+        waveCx.save(); waveCx.strokeStyle = creamMode ? 'rgba(26,23,20,.05)' : 'rgba(237,233,224,.04)'; waveCx.lineWidth = 10; waveCx.beginPath();
         for (let i = 0; i <= W2; i++) {
           let y = 0; waveHarmonics.forEach(h => { y += Math.sin(i * h.f + t * h.s + h.p) * h.a; });
           const e = .55 + .45 * Math.sin(i * .018 + t * .28);
           i === 0 ? waveCx.moveTo(i, mid + y * e * mid * .82) : waveCx.lineTo(i, mid + y * e * mid * .82);
         } waveCx.stroke(); waveCx.restore();
-        waveCx.save(); waveCx.strokeStyle = 'rgba(237,233,224,.7)'; waveCx.lineWidth = 1.8; waveCx.beginPath();
+        waveCx.save(); waveCx.strokeStyle = creamMode ? 'rgba(26,23,20,.75)' : 'rgba(237,233,224,.7)'; waveCx.lineWidth = 1.8; waveCx.beginPath();
         for (let i = 0; i <= W2; i++) {
           let y = 0; waveHarmonics.forEach(h => { y += Math.sin(i * h.f + t * h.s + h.p) * h.a; });
           const e = .55 + .45 * Math.sin(i * .018 + t * .28);
@@ -3035,33 +3085,59 @@
       animate();
 
       const msgs = ['INITIALISING AUDIO ENGINE_', 'LOADING VOICE MODELS_', 'CALIBRATING WAVEFORMS_', 'CONFIGURING CLONE CORE_', 'READY TO TRANSMIT_'];
-      let mIdx = 0;
+      let mIdx = 0, loaderIv = 0;
       function runLoader() {
         let pct = 0;
-        const iv = setInterval(() => {
-          pct += Math.random() * 3.5 + .8;
-          if (pct >= 100) { pct = 100; clearInterval(iv); onDone(); }
+        loaderIv = setInterval(() => {
+          pct += Math.random() * 5 + 3.5;
+          if (pct >= 100) { pct = 100; clearInterval(loaderIv); onDone(); }
           fillEl.style.width = Math.min(pct, 100) + '%';
           pctEl.textContent = Math.floor(Math.min(pct, 100)) + '%';
           const ni = Math.floor((pct / 100) * msgs.length);
           if (ni !== mIdx && ni < msgs.length) { mIdx = ni; statusEl.textContent = msgs[mIdx]; }
-        }, 55);
+        }, 45);
       }
-      setTimeout(runLoader, 1200);
-
       function onDone() {
-        loaded = true; statusEl.textContent = 'SYSTEMS ONLINE_'; pctEl.textContent = '100%';
-        fillEl.style.width = '100%';
+        clearInterval(loaderIv);
+        statusEl.textContent = 'SYSTEMS ONLINE_'; pctEl.textContent = '100%'; fillEl.style.width = '100%';
       }
 
-      function doEnter() {
-        if (entered) return; entered = true;
-        enterEl.classList.add('hidden');
-        intro.classList.add('exit');
-        setTimeout(() => { intro.style.display = 'none'; }, 1100);
+      /* Sequence (ms): record thrown in (0.2-1.3 s) -> arm swings down -> needle hits:
+         cream spreads out from the disc -> disc + name rush toward the viewer ->
+         the cream screen fades into the (cream) page.  A click skips to the end. */
+      const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const T = reduce ? { loader: 100, arm: 500, hit: 700, zoom: 1500, gone: 1700 }
+                       : { loader: 650, arm: 1700, hit: 2150, zoom: 3350, gone: 4150 };
+      const timers = [];
+      const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+      function armDown() { intro.classList.add('armdown'); }
+      function hit() {   // the needle touches the record: cream wave from the disc centre
+        if (intro.classList.contains('cream')) return;
+        onDone(); armDown();
+        const d = document.getElementById('vinyl-stage').getBoundingClientRect();
+        const cx = d.left + d.width / 2, cy = d.top + d.height / 2;
+        const r = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy)) + 40;
+        const b = document.getElementById('intro-burst');
+        Object.assign(b.style, { left: cx + 'px', top: cy + 'px', width: 2 * r + 'px', height: 2 * r + 'px' });
+        void b.offsetWidth;   // start the wave from scale 0
+        intro.classList.add('cream'); creamMode = true;
       }
-      intro.addEventListener('click', () => { if (loaded) doEnter(); });
-      setTimeout(doEnter, 9000);
+      function zoom() { intro.classList.add('zoom'); }
+      function gone() {
+        if (entered) return; entered = true;
+        intro.classList.add('gone');
+        setTimeout(() => { intro.style.display = 'none'; }, 700);
+      }
+      at(T.loader, runLoader);
+      at(T.arm, armDown);
+      at(T.hit, hit);
+      at(T.zoom, zoom);
+      at(T.gone, gone);
+      intro.addEventListener('click', () => {   // skip
+        if (entered) return;
+        timers.forEach(clearTimeout);
+        hit(); setTimeout(zoom, 250); setTimeout(gone, 750);
+      });
     })();
 
     /* BG CANVAS */
