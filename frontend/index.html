@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>VOXAI — Voice Clone Studio</title>
   <link
-    href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:ital,wght@0,300;0,400;1,300;1,400&display=swap"
+    href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:ital,wght@0,300;0,400;1,300;1,400&family=Noto+Sans+Tamil:wght@400;500&display=swap"
     rel="stylesheet" />
   <style>
     :root {
@@ -844,8 +844,21 @@
       color: var(--muted2);
       margin-top: 8px;
       line-height: 1.7;
-      font-style: italic
+      font-style: italic;
+      display: grid            /* both lines stacked invisibly: the space never jumps */
     }
+
+    .hero-p > span { grid-area: 1 / 1 }
+    .hp-ghost { visibility: hidden }
+    .hero-p .ta, .hp-live.ta { font-family: 'Noto Sans Tamil', 'Nirmala UI', 'Latha', var(--body); font-style: normal }
+    .hp-live { transition: opacity .35s }
+    .hp-live.fade { opacity: 0 }
+    .hp-caret {
+      display: inline-block; width: .5em; height: 1.05em; margin-left: 2px; vertical-align: -.15em;
+      background: var(--ink); animation: hpBlink .9s steps(1) infinite
+    }
+    @keyframes hpBlink { 50% { opacity: 0 } }
+    @media (prefers-reduced-motion: reduce) { .hp-caret { display: none } }
 
     .rule {
       display: flex;
@@ -2556,7 +2569,13 @@
       <div class="hero-label">Human-Quality Voice Cloning</div>
       <canvas id="hero-wave"></canvas>
       <h1 class="hero-h">Sound Like Anyone</h1>
-      <p class="hero-p">Upload a voice · type your text · hear it reborn in seconds.</p>
+      <!-- bilingual subtitle: types itself in English, then Tamil (see HERO SUBTITLE script) -->
+      <p class="hero-p" id="hero-p"
+        aria-label="Upload a voice · type your text · hear it reborn in seconds. உங்கள் குரல் · எந்த வார்த்தையும் · சில நொடிகளில்.">
+        <span class="hp-ghost" aria-hidden="true">Upload a voice · type your text · hear it reborn in seconds.</span>
+        <span class="hp-ghost ta" aria-hidden="true">உங்கள் குரல் · எந்த வார்த்தையும் · சில நொடிகளில்.</span>
+        <span class="hp-live" aria-hidden="true"><span id="hp-text">Upload a voice · type your text · hear it reborn in seconds.</span><span class="hp-caret"></span></span>
+      </p>
     </div>
 
     <div class="rule">
@@ -3014,6 +3033,43 @@
         timers.forEach(clearTimeout);
         hit(); setTimeout(zoom, 250); setTimeout(gone, 750);
       });
+    })();
+
+    /* HERO SUBTITLE — types itself in English, holds, erases, then Tamil; repeats.
+       Tamil is typed in whole letters (consonant + vowel sign together), never half. */
+    (function () {
+      const live = document.querySelector('.hp-live'), out = document.getElementById('hp-text');
+      if (!live || !out) return;
+      const LINES = [
+        { text: 'Upload a voice · type your text · hear it reborn in seconds.', ta: false },
+        { text: 'உங்கள் குரல் · எந்த வார்த்தையும் · சில நொடிகளில்.', ta: true },
+      ];
+      const letters = s => {
+        try { return [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(s)].map(x => x.segment); }
+        catch (e) { return Array.from(s); }
+      };
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
+      const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let i = 0;
+      async function loop() {
+        await sleep(6500);                      // the English line is shown while the intro plays
+        for (;;) {
+          const cur = LINES[i], next = LINES[(i + 1) % LINES.length];
+          if (reduce) {                         // calm swap, no typing
+            live.classList.add('fade'); await sleep(400);
+            out.textContent = next.text; live.classList.toggle('ta', next.ta);
+            live.classList.remove('fade'); i = (i + 1) % LINES.length; await sleep(4500); continue;
+          }
+          const gone = letters(cur.text);       // erase
+          for (let n = gone.length; n >= 0; n--) { out.textContent = gone.slice(0, n).join(''); await sleep(14); }
+          live.classList.toggle('ta', next.ta); await sleep(250);
+          const add = letters(next.text);       // type
+          for (let n = 1; n <= add.length; n++) { out.textContent = add.slice(0, n).join(''); await sleep(next.ta ? 70 : 38); }
+          i = (i + 1) % LINES.length;
+          await sleep(3800);                    // hold
+        }
+      }
+      loop();
     })();
 
     /* BG CANVAS */
