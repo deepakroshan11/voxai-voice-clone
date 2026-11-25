@@ -623,6 +623,25 @@
     /* -- sequence: arm down -> cream wave from the disc -> zoom toward the viewer -> fade -- */
     #intro.armdown .vinyl-wave-cv { opacity: 1 }
 
+    /* VOXAI flips (split-flap style) to show தமிழ், then flips back before the zoom */
+    .intro-logo { perspective: 700px }
+    .il-flip {
+      display: inline-grid;
+      justify-items: center;
+      align-items: center;
+      transform-style: preserve-3d;
+      transition: transform .35s cubic-bezier(.3, 1.3, .5, 1)
+    }
+    .il-face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden }
+    .il-back {
+      transform: rotateX(180deg);
+      font-family: 'Noto Sans Tamil', 'Nirmala UI', 'Latha', sans-serif;
+      font-weight: 700;
+      font-size: .62em;
+      letter-spacing: .02em
+    }
+    #intro.flip .il-flip { transform: rotateX(180deg) }
+
     .intro-burst {
       position: absolute;
       z-index: 3;
@@ -2539,7 +2558,9 @@
         <div class="vinyl-arm"></div>
       </div>
 
-      <div class="intro-logo">VOXAI<div class="intro-logo-line"></div>
+      <div class="intro-logo" aria-label="VOXAI">
+        <span class="il-flip" aria-hidden="true"><span class="il-face">VOXAI</span><span class="il-face il-back">தமிழ்</span></span>
+        <div class="intro-logo-line"></div>
       </div>
       <div class="intro-tagline">Sound Like Anyone — Instantly</div>
       <canvas id="intro-wave-cv"></canvas>
@@ -3003,7 +3024,7 @@
          the cream screen fades into the (cream) page.  A click skips to the end. */
       const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
       const T = reduce ? { arm: 500, hit: 700, zoom: 1500, gone: 1700 }
-                       : { arm: 1700, hit: 2150, zoom: 3350, gone: 4150 };
+                       : { arm: 1700, flip: 1800, hit: 2150, unflip: 2900, zoom: 3350, gone: 4150 };
       const timers = [];
       const at = (ms, fn) => timers.push(setTimeout(fn, ms));
       function armDown() { intro.classList.add('armdown'); }
@@ -3028,9 +3049,13 @@
       at(T.hit, hit);
       at(T.zoom, zoom);
       at(T.gone, gone);
+      if (T.flip) {   // VOXAI -> தமிழ் (lands with the needle hit) -> VOXAI before the zoom
+        at(T.flip, () => intro.classList.add('flip'));
+        at(T.unflip, () => intro.classList.remove('flip'));
+      }
       intro.addEventListener('click', () => {   // skip
         if (entered) return;
-        timers.forEach(clearTimeout);
+        timers.forEach(clearTimeout); intro.classList.remove('flip');
         hit(); setTimeout(zoom, 250); setTimeout(gone, 750);
       });
     })();
