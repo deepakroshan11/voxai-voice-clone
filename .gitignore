@@ -59,3 +59,14 @@ tmp/
 temp/
 *.tmp
 *.bak
+
+# ─── Local-only (laptop venvs, backups, personal samples) ──
+venv-indic/
+venv-backup-requirements.txt
+frontend/index.before-preview.html
+sample audio/
+{backend,frontend*/
+
+# ─── Keep: demo clips shown in the sound tip ──────
+!frontend/demo/
+!frontend/demo/*.mp3

@@ -1,18 +1,13 @@
+# Installed by the Dockerfile AFTER chatterbox-tts and IndicF5, with
+# ../constraints.txt (torch / numpy / transformers stay pinned).
+
 # ─── Web framework ───────────────────────────────
-fastapi==0.111.0
-uvicorn[standard]==0.29.0
-python-multipart==0.0.9
-
-# ─── Chatterbox TTS ──────────────────────────────
-# chatterbox-tts is installed via Dockerfile with --no-deps BEFORE this file
-# is processed, so pip sees it as already satisfied and skips dep resolution.
-# DO NOT add chatterbox-tts here — it would trigger pkuseg resolution again.
-
-# ─── PyTorch ─────────────────────────────────────
-torch==2.6.0
-torchaudio==2.6.0
+fastapi==0.129.0
+uvicorn[standard]==0.41.0
+python-multipart==0.0.22
 
 # ─── Audio utilities ─────────────────────────────
-numpy>=1.24.0,<1.26.0
 soundfile>=0.12.1
 scipy>=1.11.0
+librosa==0.11.0
+pyloudnorm>=0.1.1

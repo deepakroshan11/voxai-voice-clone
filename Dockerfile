@@ -1,64 +1,47 @@
 FROM python:3.11-slim
 
 # ── System deps ────────────────────────────────────────────────────────────────
-RUN apt-get update && apt-get install -y \
+# ffmpeg: reads uploads (mp3/m4a/webm...) and converts downloads (/export).
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
-    curl \
     build-essential \
+    libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Environment ────────────────────────────────────────────────────────────────
-ENV PORT=7860
-ENV HOST=0.0.0.0
-ENV HF_HOME=/app/.cache/huggingface
-ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
-ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
+# ── Hugging Face Spaces run the container as user 1000 ────────────────────────
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH \
+    PORT=7860 \
+    HF_HOME=/home/user/.cache/huggingface \
+    TORCH_HOME=/home/user/.cache/torch \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    DEBIAN_FRONTEND=noninteractive
+WORKDIR /home/user/app
 
-WORKDIR /app
-
-COPY backend/requirements.txt ./requirements.txt
-
-# ── Python deps ────────────────────────────────────────────────────────────────
-#
-# ROOT CAUSE: pkuseg==0.0.25 uses longintrepr.h (removed from Python 3.11-slim)
-# and also fails pip's build-isolation (no numpy in subprocess).
-# It cannot be compiled on this image under any circumstances.
-#
-# SOLUTION:
-#   1. Install torch/torchaudio at the version chatterbox requires FIRST.
-#   2. Install all of chatterbox-tts's real runtime deps manually.
-#   3. Install chatterbox-tts itself with --no-deps so pip never resolves pkuseg.
-#   4. Install spacy-pkuseg as a runtime shim (same interface as pkuseg).
-#   5. Install the rest of requirements.txt — chatterbox is already present so
-#      pip won't re-resolve its deps and won't try to build pkuseg.
-#
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir \
-    "numpy>=1.24.0,<1.26.0" \
-    "torch==2.6.0" \
-    "torchaudio==2.6.0" \
-    && pip install --no-cache-dir \
-    "librosa==0.11.0" \
-    "transformers==4.46.3" \
-    "diffusers==0.29.0" \
-    "safetensors==0.5.3" \
-    "conformer==0.3.2" \
-    "resemble-perth==1.0.1" \
-    "s3tokenizer" \
-    "pykakasi==2.3.0" \
-    "gradio==5.44.1" \
-    && pip install --no-cache-dir "spacy-pkuseg" \
-    && pip install --no-cache-dir --no-deps "chatterbox-tts==0.1.4" \
-    && pip install --no-cache-dir -r requirements.txt
+# ── Python deps (same versions as the tested local venv) ──────────────────────
+# 1. CPU-only PyTorch 2.6.0 (Spaces' free hardware has no GPU; ~2 GB smaller).
+# 2. Chatterbox 0.1.7 = Turbo English engine (uses spacy-pkuseg, so the old
+#    pkuseg build problem is gone).
+# 3. IndicF5 (Tamil) from AI4Bharat, held to the same torch/numpy/transformers.
+# 4. Web server + audio utilities.
+COPY --chown=user constraints.txt backend/requirements.txt ./
+RUN pip install --user --upgrade pip \
+    && pip install --user --index-url https://download.pytorch.org/whl/cpu \
+       "torch==2.6.0" "torchaudio==2.6.0" \
+    && pip install --user -c constraints.txt "chatterbox-tts==0.1.7" \
+    && pip install --user -c constraints.txt "git+https://github.com/ai4bharat/IndicF5.git" \
+    && pip install --user -c constraints.txt -r requirements.txt
 
 # ── App source ─────────────────────────────────────────────────────────────────
-COPY . .
+COPY --chown=user . .
+RUN mkdir -p outputs profiles /home/user/.cache/huggingface /home/user/.cache/torch
 
-RUN mkdir -p outputs profiles .cache/huggingface \
-    && chmod -R 777 outputs profiles .cache
-
+# Models download on first start (~6 GB: Chatterbox-Turbo, IndicF5, Whisper,
+# Demucs). IndicF5 is gated: accept its terms at huggingface.co/ai4bharat/IndicF5
+# and add an HF_TOKEN secret in the Space settings.
 EXPOSE 7860
-
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "1"]

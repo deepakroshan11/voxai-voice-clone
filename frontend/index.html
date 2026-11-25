@@ -1221,37 +1221,140 @@
       display: flex
     }
 
-    .rbars {
+    /* SAMPLE PREVIEW — listen to the voice sample before cloning */
+    .pv {
       display: none;
-      margin-top: 9px;
-      background: var(--cream);
-      border: 1px solid var(--line);
-      padding: 7px 11px
+      margin-top: 12px;
+      padding: 10px clamp(10px, 2.5vw, 14px);
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink2);
+      animation: cardIn .4s ease both
     }
 
-    .rbars.on {
+    .pv.on {
       display: block
     }
 
-    .rbars-lbl {
-      font-family: var(--mono);
-      font-size: 7px;
-      letter-spacing: 2.5px;
-      color: var(--muted);
-      margin-bottom: 5px
-    }
-
-    .rbars-row {
+    .pv-top {
       display: flex;
-      gap: 2px;
-      align-items: flex-end;
-      height: 18px
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px
     }
 
-    .rbar {
+    .pv-lbl {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted2);
+      text-transform: uppercase
+    }
+
+    .pv-time {
+      flex-shrink: 0;
+      font-family: var(--vt);
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: 2px;
+      color: var(--ink)
+    }
+
+    .pv-time span {
+      color: var(--muted)
+    }
+
+    .pv-time b,
+    .pv-time i {
+      font-weight: normal;
+      font-style: normal
+    }
+
+    .pv-row {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .pv-track {
+      position: relative;
       flex: 1;
-      background: rgba(26, 23, 20, .1);
-      border-top: 1px solid rgba(26, 23, 20, .2)
+      min-width: 60px;
+      height: clamp(44px, 8vw, 52px);
+      background: var(--cream2);
+      border: 1.5px solid var(--ink);
+      cursor: inherit;
+      touch-action: none;
+      user-select: none;
+      outline: none
+    }
+
+    .pv-track:focus-visible {
+      box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink)
+    }
+
+    .pv-track canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%
+    }
+
+    .pv-ph,
+    .pv-ghost {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      pointer-events: none
+    }
+
+    .pv-ph {
+      width: 2px;
+      margin-left: -1px;
+      background: var(--red)
+    }
+
+    .pv-ghost {
+      display: none;
+      width: 1px;
+      background: rgba(26, 23, 20, .45)
+    }
+
+    .pv-tip {
+      position: absolute;
+      top: -24px;
+      left: 0;
+      z-index: 2;
+      display: none;
+      transform: translateX(-50%);
+      padding: 3px 6px;
+      background: var(--ink);
+      color: var(--cream);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      pointer-events: none
+    }
+
+    .pv-track.hover .pv-ghost,
+    .pv-track.hover .pv-tip {
+      display: block
+    }
+
+    .pv-hint {
+      margin-top: 7px;
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase
     }
 
     /* VINYL RECORDER */
@@ -1475,6 +1578,212 @@
       height: 100%
     }
 
+    /* ════ INDIC TRANSCRIPT PANEL ════ */
+    .indic-box {
+      display: none;
+      margin-top: 12px;
+      border: 1.5px solid var(--ink);
+      background: var(--cream2);
+      padding: 12px
+    }
+
+    .indic-box.on {
+      display: block
+    }
+
+    .indic-lbl {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      margin-bottom: 6px
+    }
+
+    .indic-script {
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px dashed var(--line2);
+      padding: 10px;
+      margin-bottom: 8px
+    }
+
+    .indic-use {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      background: var(--ink);
+      color: var(--cream);
+      border: none;
+      padding: 6px 10px;
+      cursor: pointer;
+      margin-bottom: 12px
+    }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; flex: 1; min-width: 0 }
+    .tag-row.off { display: none }
+    .tag-lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--muted2) }
+    .tag-chip {
+      font-family: var(--mono); font-size: 11px; background: var(--paper); color: var(--ink);
+      border: 1px solid var(--line2); padding: 3px 7px; cursor: pointer
+    }
+    .tag-chip:hover { background: var(--ink); color: var(--cream) }
+    .tag-row.hint .tag-chip { animation: chipPulse 1.1s ease-in-out 3 }
+    @keyframes chipPulse {
+      50% { border-color: var(--ink); background: var(--cream3); box-shadow: 2px 2px 0 var(--ink2) }
+    }
+    .tag-help {
+      width: 17px; height: 17px; flex-shrink: 0; margin-left: -2px;
+      border: 1px solid var(--line2); background: transparent; color: var(--muted2);
+      font-family: var(--mono); font-size: 10px; line-height: 1; cursor: inherit
+    }
+    .tag-help:hover, .tag-help.on { background: var(--ink); border-color: var(--ink); color: var(--cream) }
+
+    /* SOUNDS COACH — after a voice is added, the first click in the text box fades the
+       page, spotlights the sound buttons and points at them (see openCoach). */
+    .coach { display: none }
+    .coach.on { display: block }
+    .coach-dim {
+      position: fixed; z-index: 9000;
+      background: rgba(228, 223, 212, .88);
+      animation: coachFade .25s ease both
+    }
+    .coach-hole {
+      position: fixed; z-index: 9001; pointer-events: none;
+      outline: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink2)
+    }
+    /* music notes flying out of the sound buttons toward the card */
+    .coach-notes { position: fixed; z-index: 9002; pointer-events: none }
+    .coach-note {
+      position: absolute; bottom: 2px; width: 18px; height: 18px; color: var(--ink); opacity: 0;
+      animation: noteUp 2.2s ease-out infinite
+    }
+    .coach-note:nth-child(even) { width: 22px; height: 22px }
+    .coach-note svg { display: block; width: 100%; height: 100%; fill: currentColor }
+    .coach-notes.down .coach-note { bottom: auto; top: 2px; animation-name: noteDown }
+    @keyframes noteUp {
+      0% { opacity: 0; transform: translateY(6px) rotate(-12deg) scale(.6) }
+      20% { opacity: 1 }
+      55% { transform: translate(7px, -22px) rotate(10deg) scale(1) }
+      100% { opacity: 0; transform: translate(-5px, -44px) rotate(-8deg) scale(.85) }
+    }
+    @keyframes noteDown {
+      0% { opacity: 0; transform: translateY(-6px) rotate(12deg) scale(.6) }
+      20% { opacity: 1 }
+      55% { transform: translate(7px, 22px) rotate(-10deg) scale(1) }
+      100% { opacity: 0; transform: translate(-5px, 44px) rotate(8deg) scale(.85) }
+    }
+    .coach-card {
+      position: fixed; z-index: 9002; width: min(350px, calc(100vw - 24px));
+      padding: 13px 15px 14px; background: var(--paper);
+      border: 1.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+      animation: coachIn .35s cubic-bezier(.22, 1, .36, 1) both
+    }
+    .coach-x {
+      position: absolute; top: 8px; right: 8px; width: 26px; height: 26px;
+      border: 1.5px solid var(--ink); background: transparent; color: var(--ink);
+      font-family: var(--mono); font-size: 12px; line-height: 1; cursor: inherit
+    }
+    .coach-x:hover { background: var(--ink); color: var(--cream) }
+    .coach-k { font-family: var(--mono); font-size: 8px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted) }
+    .coach-t {
+      margin: 2px 34px 5px 0; font-family: var(--cond); font-weight: 800; font-size: 20px;
+      letter-spacing: 1px; text-transform: uppercase; color: var(--ink)
+    }
+    /* before / after sample clips inside the card */
+    .coach-demo {
+      position: relative; display: flex; align-items: center; gap: 10px; width: 100%;
+      margin-top: 8px; padding: 8px 10px; text-align: left; overflow: hidden;
+      background: var(--cream2); border: 1px solid var(--line); color: var(--ink2); cursor: inherit; --p: 0
+    }
+    .coach-demo:hover, .coach-demo.on { border-color: var(--ink) }
+    .coach-play {
+      flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink); transition: all .15s
+    }
+    .coach-demo:hover .coach-play, .coach-demo.on .coach-play { background: var(--ink); color: var(--cream) }
+    .coach-demo.auto { animation: demoBlink .6s ease-in-out infinite alternate }        /* auto demo: row blinks */
+    @keyframes demoBlink {
+      from { background: var(--cream2); border-color: var(--line) }
+      to { background: var(--cream3); border-color: var(--ink); box-shadow: 2px 2px 0 var(--ink2) }
+    }
+    .coach-demo.invite .coach-play { animation: playInvite 1s ease-in-out infinite }    /* sound blocked: tap me */
+    @keyframes playInvite { 50% { background: var(--ink); color: var(--cream) } }
+    .coach-lbl { display: block; font-family: var(--mono); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted) }
+    .coach-line { display: block; margin-top: 2px; font-family: var(--mono); font-size: 11px; color: var(--ink2) }
+    .coach-line b { padding: 0 3px; font-weight: normal; color: var(--ink); background: var(--paper); border: 1px solid var(--line2) }
+    .coach-bar {
+      position: absolute; left: 0; bottom: 0; height: 2px; width: calc(var(--p) * 100%);
+      background: var(--red); transition: width .25s linear
+    }
+    .coach-foot { margin-top: 10px; font-family: var(--mono); font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted) }
+    @keyframes coachFade { from { opacity: 0 } }
+    @keyframes coachIn { from { opacity: 0; transform: translateY(8px) } }
+    @media (prefers-reduced-motion: reduce) {
+      .coach-dim, .coach-card, .tag-row.hint .tag-chip, .coach-demo.auto, .coach-demo.invite .coach-play { animation: none }
+      .coach-note { animation: none; opacity: 1 }
+    }
+
+    .indic-style {
+      width: 100%;
+      font-family: var(--body);
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line2);
+      padding: 6px;
+      margin-bottom: 8px
+    }
+
+    .indic-box textarea {
+      width: 100%;
+      min-height: 70px;
+      font-family: var(--body);
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line2);
+      padding: 8px;
+      resize: vertical;
+      outline: none
+    }
+
+    .indic-note {
+      font-family: var(--body);
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.45
+    }
+
+    .rec-script {
+      display: none;
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px dashed var(--line2);
+      padding: 10px;
+      margin-top: 10px;
+      text-align: left
+    }
+
+    .rec-script.on {
+      display: block
+    }
+
+    .prof-lang {
+      font-family: var(--mono);
+      font-size: 9px;
+      margin-left: 6px;
+      opacity: .7
+    }
+
     /* ════ LANGUAGE — INLINE EXPANDING ════ */
     #ls {
       display: none
@@ -1681,12 +1990,17 @@
     }
 
     .char-row {
+      position: relative;
       display: flex;
-      justify-content: flex-end;
-      margin-top: 5px
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 8px
     }
 
     .char-c {
+      margin-left: auto;
+      padding-top: 5px;
+      white-space: nowrap;
       font-family: var(--mono);
       font-size: 7.5px;
       color: var(--muted2)
@@ -1874,19 +2188,55 @@
       z-index: 1
     }
 
-    .viz-wrap {
-      flex: 1;
-      height: clamp(44px, 8vw, 52px);
-      overflow: hidden;
-      background: var(--cream2);
-      border: 1.5px solid var(--ink);
-      min-width: 50px
-    }
+    /* result player: same waveform track as the sample preview (.pv-track) */
+    .o-time { margin-left: auto }
+    .o-hint { padding: 0 clamp(12px, 2.5vw, 16px) clamp(12px, 2.5vw, 16px); margin-top: -4px }
 
-    #oc {
-      width: 100%;
-      height: 100%
+    /* DOWNLOAD DIALOG — name the file, pick a format */
+    .xp { display: none }
+    .xp.on { display: block }
+    .xp-bg {
+      position: fixed; inset: 0; z-index: 9500;
+      background: rgba(228, 223, 212, .88); animation: coachFade .25s ease both
     }
+    .xp-card {
+      position: fixed; z-index: 9501; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: min(470px, calc(100vw - 24px)); padding: 16px 18px 18px;
+      background: var(--paper); border: 1.5px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+      animation: xpIn .3s cubic-bezier(.22, 1, .36, 1) both
+    }
+    @keyframes xpIn { from { opacity: 0; transform: translate(-50%, -46%) } }
+    .xp-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap }
+    .xp-field { display: flex; flex-direction: column; gap: 5px; min-width: 0 }
+    .xp-field.name { flex: 1 1 220px }
+    .xp-field.fmt { flex: 0 0 124px }
+    .xp-lbl { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted) }
+    .xp-namebox {
+      display: flex; align-items: center; height: 42px;
+      background: var(--cream2); border: 1.5px solid var(--ink)
+    }
+    .xp-namebox:focus-within { box-shadow: 2px 2px 0 var(--ink) }
+    .xp-name {
+      flex: 1; min-width: 0; height: 100%; padding: 0 10px; border: none; outline: none; background: transparent;
+      font-family: var(--mono); font-size: 13px; color: var(--ink)
+    }
+    .xp-ext { padding-right: 10px; font-family: var(--mono); font-size: 13px; color: var(--muted) }
+    .xp-sel {
+      height: 42px; width: 100%; padding: 0 30px 0 11px; border: 1.5px solid var(--ink); border-radius: 0;
+      background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0h10L5 6z' fill='%231a1714'/%3E%3C/svg%3E") no-repeat right 11px center;
+      -webkit-appearance: none; appearance: none; outline: none; cursor: inherit;
+      font-family: var(--mono); font-size: 13px; letter-spacing: 1.5px; color: var(--ink)
+    }
+    .xp-sel:focus { box-shadow: 2px 2px 0 var(--ink) }
+    .xp-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; flex-wrap: wrap }
+    .xp-desc { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--muted2); text-transform: uppercase }
+    .xp-go {
+      display: flex; align-items: center; gap: 7px; margin-left: auto; padding: 12px 18px;
+      background: var(--ink); color: var(--cream); border: 1.5px solid var(--ink); box-shadow: 3px 3px 0 var(--line2);
+      font-family: var(--mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; cursor: inherit; transition: all .15s
+    }
+    .xp-go:hover { background: var(--paper); color: var(--ink) }
+    .xp-go:disabled { opacity: .55; pointer-events: none }
 
     .save-btn {
       display: flex;
@@ -2301,17 +2651,13 @@
                 d="M0,16 C5,16 7,5 9,5 C11,5 13,27 15,27 C17,27 19,7 21,3 C23,-1 25,29 27,29 C29,29 31,9 33,5 C35,1 37,27 39,27 C41,27 43,7 45,3 C47,-1 49,29 51,29 C53,29 55,11 57,7 C59,3 61,25 63,25 C65,25 67,9 69,9 C71,9 73,21 75,21 C77,21 82,16 90,16" />
             </svg>
             <div class="dz-t">Drop audio or <strong>Click to Browse</strong></div>
-            <div class="dz-hint">WAV · MP3 · OGG · M4A · FLAC — 15 to 30 seconds recommended</div>
+            <div class="dz-hint" id="dz-hint">WAV · MP3 · OGG · M4A · FLAC — 15 to 30 seconds recommended</div>
             <div class="file-ok" id="fcho">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               <span id="fn">—</span>
             </div>
-          </div>
-          <div class="rbars" id="rq">
-            <div class="rbars-lbl">REFERENCE ANALYSED</div>
-            <div class="rbars-row" id="rqb"></div>
           </div>
         </div>
         <div class="panel" id="panel-rec">
@@ -2331,9 +2677,33 @@
             </div>
             <div class="rec-timer" id="rtimer">0:00</div>
             <div class="rec-lbl" id="rl">[ TAP DISC TO RECORD ]</div>
-            <div class="rec-tip">15–30 seconds · quiet room · speak naturally</div>
+            <div class="rec-tip" id="rec-tip">15–30 seconds · quiet room · speak naturally</div>
+            <div class="rec-script" id="rec-script"></div>
             <div class="wavebox" id="ww"><canvas id="wc"></canvas></div>
           </div>
+        </div>
+        <!-- SAMPLE PREVIEW: hear the uploaded / recorded sample before cloning -->
+        <div class="pv" id="pv">
+          <div class="pv-top">
+            <div class="pv-lbl" id="pv-lbl">Your sample</div>
+            <div class="pv-time"><b id="pv-cur">0:00</b><span> / <i id="pv-dur">0:00</i></span></div>
+          </div>
+          <div class="pv-row">
+            <button class="play-btn" id="pv-play" type="button" aria-label="Play your sample">
+              <svg id="pv-ico" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+            </button>
+            <div class="pv-track" id="pv-track" tabindex="0" role="slider" aria-label="Position in your sample"
+              aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+              <canvas id="pv-cv"></canvas>
+              <div class="pv-ghost" id="pv-ghost"></div>
+              <div class="pv-ph" id="pv-ph"></div>
+              <div class="pv-tip" id="pv-tip">0:00</div>
+            </div>
+          </div>
+          <div class="pv-hint">Click or drag the wave to listen from any second</div>
+          <audio id="pv-au" preload="auto"></audio>
         </div>
       </div>
     </div>
@@ -2348,6 +2718,18 @@
         <textarea id="ti" maxlength="500"
           placeholder="Type what you want to say in the cloned voice…&#10;&#10;Natural sentences with punctuation produce the best timing and pacing."></textarea>
         <div class="char-row">
+          <div class="tag-row" id="tag-row">
+            <span class="tag-lbl">ADD HUMAN SOUNDS:</span>
+            <button type="button" class="tag-help" id="tag-help" aria-label="How do human sounds work?">?</button>
+            <button type="button" class="tag-chip">[laugh]</button>
+            <button type="button" class="tag-chip">[chuckle]</button>
+            <button type="button" class="tag-chip">[sigh]</button>
+            <button type="button" class="tag-chip">[gasp]</button>
+            <button type="button" class="tag-chip">[clear throat]</button>
+            <button type="button" class="tag-chip">[whispering]</button>
+            <button type="button" class="tag-chip">[happy]</button>
+            <button type="button" class="tag-chip">[sarcastic]</button>
+          </div>
           <div class="char-c" id="cc">0 / 500</div>
         </div>
       </div>
@@ -2361,7 +2743,10 @@
       </div>
       <div class="step-body">
         <select id="ls" style="display:none">
+          <!-- Every selectable language needs an option here, otherwise setting
+               .value fails silently and the request is sent as English. -->
           <option value="en">English</option>
+          <option value="ta">Tamil</option>
         </select>
 
         <div class="lang-select-wrap" id="lang-wrap">
@@ -2391,7 +2776,7 @@
             </div>
 
             <div class="lang-group-hdr">South Asia</div>
-            <div class="lang-opt" data-val="" data-flag="🇮🇳" onclick="selectLang(this)">
+            <div class="lang-opt selectable" data-val="ta" data-flag="🇮🇳" onclick="selectLang(this)">
               <div class="lang-opt-left">
                 <span class="lang-opt-flag">🇮🇳</span>
                 <div>
@@ -2399,27 +2784,7 @@
                   <div class="lang-opt-native">தமிழ்</div>
                 </div>
               </div>
-              <span class="lang-tag-cs">COMING SOON</span>
-            </div>
-            <div class="lang-opt" data-val="" data-flag="🇮🇳" onclick="selectLang(this)">
-              <div class="lang-opt-left">
-                <span class="lang-opt-flag">🇮🇳</span>
-                <div>
-                  <div class="lang-opt-name">Hindi</div>
-                  <div class="lang-opt-native">हिन्दी</div>
-                </div>
-              </div>
-              <span class="lang-tag-cs">COMING SOON</span>
-            </div>
-            <div class="lang-opt" data-val="" data-flag="🇮🇳" onclick="selectLang(this)">
-              <div class="lang-opt-left">
-                <span class="lang-opt-flag">🇮🇳</span>
-                <div>
-                  <div class="lang-opt-name">Telugu</div>
-                  <div class="lang-opt-native">తెలుగు</div>
-                </div>
-              </div>
-              <span class="lang-tag-cs">COMING SOON</span>
+              <span class="lang-tag-ok">BETA</span>
             </div>
 
             <div class="lang-group-hdr">Europe</div>
@@ -2458,6 +2823,27 @@
 
           </div>
         </div>
+        <div class="indic-box" id="indic-box">
+          <div class="indic-lbl">Read-aloud script (<span id="indic-lname">Tamil</span>)</div>
+          <div class="indic-script" id="indic-script"></div>
+          <button class="indic-use" type="button" id="indic-use">USE THIS SCRIPT AS TRANSCRIPT</button>
+          <div class="indic-lbl">Transcript of your voice sample (optional)</div>
+          <textarea id="rt" placeholder="Leave empty — the exact words in your sample are detected automatically…"></textarea>
+          <button class="indic-use" type="button" id="indic-detect">AUTO-DETECT WORDS IN MY SAMPLE</button>
+          <div class="indic-lbl">Speaking style</div>
+          <select id="tstyle" class="indic-style">
+            <option value="spoken">Natural spoken Tamil (பேச்சுத் தமிழ்) — recommended</option>
+            <option value="formal">Formal / as written (எழுத்துத் தமிழ்)</option>
+          </select>
+          <div class="indic-note">
+            Use a 5–30 s sample of natural speech (the best 12 s are used). The transcript must match the sample
+            <b>word for word</b> (a wrong one makes words go missing), so leave it empty
+            or press auto-detect and check it.
+            “Natural spoken” turns written forms into everyday speech
+            (இருக்கிறது → இருக்கு, போகிறேன் → போறேன், அவர்கள் → அவங்க).
+          </div>
+          <div class="indic-note" id="spoken-out" style="display:none"></div>
+        </div>
       </div>
     </div>
 
@@ -2486,24 +2872,32 @@
       <div class="step-head">
         <div class="sn">►</div>
         <div class="st">Cloned Voice</div>
+        <div class="pv-time o-time"><b id="o-cur">0:00</b><span> / <i id="o-dur">0:00</i></span></div>
       </div>
       <div class="play-row">
-        <button class="play-btn" id="play" type="button">
+        <button class="play-btn" id="play" type="button" aria-label="Play the cloned voice">
           <svg id="pico" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
         </button>
-        <div class="viz-wrap"><canvas id="oc"></canvas></div>
-        <a class="save-btn" id="dl" download="cloned_voice.wav">
+        <div class="pv-track" id="o-track" tabindex="0" role="slider" aria-label="Position in the cloned voice"
+          aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+          <canvas id="oc"></canvas>
+          <div class="pv-ghost" id="o-ghost"></div>
+          <div class="pv-ph" id="o-ph"></div>
+          <div class="pv-tip" id="o-tip">0:00</div>
+        </div>
+        <button class="save-btn" id="dl" type="button">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          SAVE WAV
-        </a>
+          DOWNLOAD
+        </button>
       </div>
-      <audio id="ae"></audio>
+      <div class="pv-hint o-hint">Click or drag the wave to listen from any second</div>
+      <audio id="ae" preload="auto"></audio>
     </div>
 
     <!-- PROFILES -->
@@ -2748,6 +3142,64 @@
       }
     }
 
+    /* Indic languages (IndicF5): need a short sample + its exact transcript */
+    const INDIC = {
+      // Written the way people talk: the clone copies the style of the sample.
+      ta: { name: 'Tamil', script: 'வணக்கம்! இன்னைக்கு வானிலை ரொம்ப அழகா இருக்கு. நான் என் ஃப்ரெண்ட்ஸோட பீச்சுக்கு போய், சூடா ஒரு டீ குடிச்சுட்டு, ஜாலியா பேசிக்கிட்டு இருந்தோம்.' },
+    };
+    const curLang = () => document.getElementById('ls').value || 'en';
+    function onLangChange() {
+      const L = INDIC[curLang()];
+      document.getElementById('indic-box').classList.toggle('on', !!L);
+      document.getElementById('tag-row').classList.toggle('off', !!L);
+      if (L) closeCoach();   // sound tags are English-only
+      const rs = document.getElementById('rec-script');
+      rs.classList.toggle('on', !!L);
+      if (L) {
+        document.getElementById('indic-lname').textContent = L.name;
+        document.getElementById('indic-script').textContent = L.script;
+        rs.textContent = 'READ THIS ALOUD: ' + L.script;
+      }
+      document.getElementById('dz-hint').textContent = L
+        ? 'WAV · MP3 · OGG · M4A · FLAC — 5 to 30 seconds of natural speech'
+        : 'WAV · MP3 · OGG · M4A · FLAC — 15 to 30 seconds recommended';
+      document.getElementById('rec-tip').textContent = L
+        ? '5–30 seconds · read the script below · quiet room'
+        : '15–30 seconds · quiet room · speak naturally';
+      document.getElementById('ti').placeholder = L
+        ? `Type the ${L.name} text to speak in the cloned voice…`
+        : 'Type what you want to say in the cloned voice…\n\nNatural sentences with punctuation produce the best timing and pacing.';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('indic-use').addEventListener('click', () => {
+        const L = INDIC[curLang()]; if (!L) return;
+        document.getElementById('rt').value = L.script; toast('TRANSCRIPT SET', 'ok');
+      });
+      document.querySelectorAll('.tag-chip').forEach(b => b.addEventListener('click', () => {
+        const ta = document.getElementById('ti'), tag = ' ' + b.textContent + ' ';
+        const i = ta.selectionStart ?? ta.value.length, j = ta.selectionEnd ?? i;
+        ta.value = (ta.value.slice(0, i) + tag + ta.value.slice(j)).replace(/ {2,}/g, ' ');
+        ta.focus(); ta.dispatchEvent(new Event('input'));
+      }));
+      document.getElementById('indic-detect').addEventListener('click', async (ev) => {
+        const btn = ev.currentTarget, fd = new FormData();
+        if (S.selProf) fd.append('profile_name', S.selProf);
+        else if (S.file || S.rec) {
+          const src = S.file || S.rec, nc = S.file ? !/\.wav$/i.test(S.file.name) : true;
+          fd.append('voice_sample', new File([nc ? await blobToWav(src) : src], 'voice.wav', { type: 'audio/wav' }));
+        } else { toast('ADD VOICE SOURCE FIRST', 'er'); return }
+        btn.disabled = true; btn.textContent = 'LISTENING… (~1 MIN)';
+        try {
+          const r = await fetch(`${API}/transcribe`, { method: 'POST', body: fd });
+          const j = await r.json();
+          if (!r.ok) throw new Error(j.detail || 'FAILED');
+          document.getElementById('rt').value = j.text;
+          toast('DETECTED — CHECK THE WORDS', 'ok');
+        } catch (e) { toast(String(e.message).toUpperCase(), 'er') }
+        finally { btn.disabled = false; btn.textContent = 'AUTO-DETECT WORDS IN MY SAMPLE' }
+      });
+    });
+
     function selectLang(el) {
       if (!el.dataset.val) { toast('COMING SOON!', ''); }
       document.querySelectorAll('.lang-opt').forEach(o => o.classList.remove('active'));
@@ -2757,10 +3209,14 @@
       const isAvail = !!el.dataset.val;
       document.getElementById('lang-display').textContent = name;
       document.getElementById('lang-flag').textContent = flag;
-      document.getElementById('ls').value = el.dataset.val || 'en';
+      const ls = document.getElementById('ls'), val = el.dataset.val || 'en';
+      if (![...ls.options].some(o => o.value === val)) ls.add(new Option(name, val));
+      ls.value = val;
       const badge = document.getElementById('lang-status-badge');
-      badge.textContent = isAvail ? 'AVAILABLE' : 'COMING SOON';
+      const isBeta = INDIC[el.dataset.val];
+      badge.textContent = isAvail ? (isBeta ? 'BETA' : 'AVAILABLE') : 'COMING SOON';
       badge.className = 'lang-badge' + (isAvail ? '' : ' cs');
+      onLangChange();
       // Close after selection
       document.getElementById('lang-dropdown').classList.remove('open');
       document.getElementById('lang-wrap').classList.remove('open');
@@ -2782,7 +3238,7 @@
     const S = { file: null, rec: null, recording: false, playing: false, blob: null, mr: null, ac: null, an: null, af: null, chunks: [], profiles: [], selProf: null, oac: null, recSec: 0, recInt: null };
     const $ = id => document.getElementById(id);
     const D = {
-      fi: $('fi'), dz: $('dz'), fcho: $('fcho'), fn: $('fn'), rq: $('rq'), rqb: $('rqb'),
+      fi: $('fi'), dz: $('dz'), fcho: $('fcho'), fn: $('fn'),
       discWrap: $('disc-wrap'), rl: $('rl'), ww: $('ww'), wc: $('wc'), rtimer: $('rtimer'),
       discWc: $('disc-wc'), discHole: $('disc-hole'),
       ti: $('ti'), cc: $('cc'), ls: $('ls'),
@@ -2797,21 +3253,236 @@
       $('panel-up').classList.toggle('on', t === 'up'); $('panel-rec').classList.toggle('on', t === 'rec');
     }
 
-    function animBars() {
-      D.rqb.innerHTML = '';
-      for (let i = 0; i < 32; i++) {
-        const b = document.createElement('div'); b.className = 'rbar';
-        const h = Math.random() * 14 + 3; b.style.cssText = `height:${h}px;transition:height ${.25 + Math.random() * .5}s ease`;
-        D.rqb.appendChild(b);
-        setTimeout(() => { b.style.height = (Math.random() * 14 + 3) + 'px' }, 50 + i * 20);
-      }
-      setInterval(() => D.rqb.querySelectorAll('.rbar').forEach(b => { b.style.height = (Math.random() * 14 + 3) + 'px' }), 800);
+    /* WAVE PLAYER — play / pause + the real waveform, click or drag to jump to any second.
+       One implementation for the voice-sample preview (PV) and the cloned-voice result (OUT). */
+    const ICO_PLAY = '<polygon points="5 3 19 12 5 21 5 3"/>';
+    const ICO_PAUSE = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+    const INK = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#1a1714';
+    const fmtT = t => { t = Math.max(0, t || 0); const m = Math.floor(t / 60), s = Math.floor(t % 60); return m + ':' + (s < 10 ? '0' : '') + s; };
+    const WAVE_PLAYERS = [];
+    function pauseAllPlayers(except) {   // only one sound at a time on the page
+      WAVE_PLAYERS.forEach(p => { if (p !== except) p.pause(); });
+      if (except !== 'coach') { try { coachCancelAuto(); coachStop(); } catch (e) { } }
+    }
+    function makeWavePlayer(el, what) {   // el: au, btn, ico, track, cv, ph, ghost, tip, cur, dur
+      const P = Object.assign({ url: null, peaks: null, len: 0, raf: 0, drag: false, tok: 0 }, el);
+      P.length = () => P.len || (isFinite(P.au.duration) ? P.au.duration : 0);
+      P.pause = () => { if (!P.au.paused) P.au.pause(); };
+      P.play = () => { pauseAllPlayers(P); P.au.play().catch(() => toast('CANNOT PLAY THIS AUDIO', 'er')); };
+      P.toggle = () => P.au.paused ? P.play() : P.au.pause();
+      P.load = async blob => {
+        const tok = ++P.tok;
+        P.pause();
+        if (P.url) URL.revokeObjectURL(P.url);
+        P.url = URL.createObjectURL(blob); P.au.src = P.url;
+        P.peaks = null; P.len = 0; P.draw();
+        try {   // the real waveform (if the browser can't decode it: a plain bar)
+          const ac = new (window.AudioContext || window.webkitAudioContext)();
+          const buf = await ac.decodeAudioData(await blob.arrayBuffer()); ac.close();
+          if (tok !== P.tok) return;
+          const n = 900, step = Math.max(1, Math.floor(buf.length / n)), pk = new Float32Array(n);
+          for (let c = 0; c < buf.numberOfChannels; c++) {
+            const d = buf.getChannelData(c);
+            for (let i = 0; i < n; i++) {
+              let m = pk[i];
+              for (let j = i * step, e = Math.min(d.length, j + step); j < e; j++) { const v = d[j] < 0 ? -d[j] : d[j]; if (v > m) m = v; }
+              pk[i] = m;
+            }
+          }
+          let mx = 0; pk.forEach(v => { if (v > mx) mx = v });
+          P.peaks = mx > 0 ? pk.map(v => v / mx) : pk; P.len = buf.duration; P.draw();
+        } catch (e) { /* keep the plain bar */ }
+      };
+      P.draw = () => {
+        const W = P.track.clientWidth, H = P.track.clientHeight, r = window.devicePixelRatio || 1;
+        if (!W || !H) return;
+        const cv = P.cv;
+        if (cv.width !== Math.round(W * r) || cv.height !== Math.round(H * r)) { cv.width = Math.round(W * r); cv.height = Math.round(H * r); }
+        const cx = cv.getContext('2d'); cx.setTransform(r, 0, 0, r, 0, 0); cx.clearRect(0, 0, W, H);
+        const len = P.length(), t = P.au.currentTime || 0, x = len ? Math.min(1, t / len) * W : 0;
+        const gap = 3, n = Math.floor(W / gap), mid = H / 2;
+        for (let i = 0; i < n; i++) {
+          let a = .1;
+          if (P.peaks) {
+            const s = Math.floor(i * P.peaks.length / n), e = Math.max(s + 1, Math.floor((i + 1) * P.peaks.length / n));
+            a = 0; for (let j = s; j < e; j++) if (P.peaks[j] > a) a = P.peaks[j];
+          }
+          const h = Math.max(2, a * (H - 12)), bx = i * gap + 1;
+          cx.globalAlpha = bx < x ? 1 : .28; cx.fillStyle = INK;
+          cx.fillRect(bx, mid - h / 2, 2, h);
+        }
+        cx.globalAlpha = 1;
+        P.ph.style.left = x + 'px';
+        P.cur.textContent = fmtT(t); P.dur.textContent = fmtT(len);
+        P.track.setAttribute('aria-valuemax', Math.round(len)); P.track.setAttribute('aria-valuenow', Math.round(t));
+        P.track.setAttribute('aria-valuetext', fmtT(t) + ' of ' + fmtT(len));
+      };
+      const loop = () => { P.draw(); if (!P.au.paused) P.raf = requestAnimationFrame(loop); };
+      P.au.addEventListener('play', () => { P.ico.innerHTML = ICO_PAUSE; P.btn.classList.add('on'); P.btn.setAttribute('aria-label', 'Pause ' + what); cancelAnimationFrame(P.raf); loop(); });
+      P.au.addEventListener('pause', () => { P.ico.innerHTML = ICO_PLAY; P.btn.classList.remove('on'); P.btn.setAttribute('aria-label', 'Play ' + what); P.draw(); });
+      P.au.addEventListener('ended', () => { P.au.currentTime = 0; P.draw(); });
+      P.au.addEventListener('loadedmetadata', P.draw);
+      P.btn.addEventListener('click', P.toggle);
+
+      const at = clientX => {   // 0..1 position under the pointer
+        const b = P.track.getBoundingClientRect();
+        return { f: Math.min(1, Math.max(0, (clientX - b.left) / b.width)), w: b.width };
+      };
+      const hover = clientX => {
+        const { f, w } = at(clientX), x = f * w;
+        P.ghost.style.left = x + 'px';
+        P.tip.style.left = Math.min(w - 20, Math.max(20, x)) + 'px';
+        P.tip.textContent = fmtT(f * P.length());
+      };
+      const seek = clientX => { const len = P.length(); if (len) { P.au.currentTime = at(clientX).f * len; P.draw(); } };
+      // Time bubble on mouse hover only; on touch the big time display shows the position.
+      P.track.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') P.track.classList.add('hover'); });
+      P.track.addEventListener('pointerleave', () => P.track.classList.remove('hover'));
+      P.track.addEventListener('pointerdown', e => {
+        if (!P.length()) return;
+        P.drag = true; P.track.classList.add('drag'); P.track.setPointerCapture(e.pointerId);
+        hover(e.clientX); seek(e.clientX);
+      });
+      P.track.addEventListener('pointermove', e => { hover(e.clientX); if (P.drag) seek(e.clientX); });
+      P.track.addEventListener('pointerup', () => {
+        if (!P.drag) return;
+        P.drag = false; P.track.classList.remove('drag');
+        if (P.au.paused) P.play();          // click a spot = hear it from there
+      });
+      P.track.addEventListener('pointercancel', () => { P.drag = false; P.track.classList.remove('drag'); });
+      P.track.addEventListener('keydown', e => {   // Space/Enter play-pause, arrows ±1 s (Shift ±5 s)
+        const len = P.length(); if (!len) return;
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); P.toggle(); }
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const d = (e.shiftKey ? 5 : 1) * (e.key === 'ArrowLeft' ? -1 : 1);
+          P.au.currentTime = Math.min(len, Math.max(0, P.au.currentTime + d)); P.draw();
+        }
+      });
+      if (window.ResizeObserver) new ResizeObserver(() => P.draw()).observe(P.track);
+      else window.addEventListener('resize', P.draw);
+      WAVE_PLAYERS.push(P);
+      return P;
     }
 
+    /* SAMPLE PREVIEW — hear the uploaded / recorded voice sample before cloning */
+    const PV = makeWavePlayer({
+      au: $('pv-au'), btn: $('pv-play'), ico: $('pv-ico'), track: $('pv-track'), cv: $('pv-cv'),
+      ph: $('pv-ph'), ghost: $('pv-ghost'), tip: $('pv-tip'), cur: $('pv-cur'), dur: $('pv-dur')
+    }, 'your sample');
+    PV.el = $('pv'); PV.lbl = $('pv-lbl');
+    function showPreview(blob, label) {
+      PV.lbl.textContent = label; PV.lbl.title = label; PV.el.classList.add('on');
+      return PV.load(blob);
+    }
+    function hidePreview() { PV.pause(); PV.el.classList.remove('on'); }
+    function pvPause() { PV.pause(); }
+
+    /* RESULT PLAYER — the cloned voice */
+    const OUT = makeWavePlayer({
+      au: D.ae, btn: D.play, ico: D.pico, track: $('o-track'), cv: D.oc,
+      ph: $('o-ph'), ghost: $('o-ghost'), tip: $('o-tip'), cur: $('o-cur'), dur: $('o-dur')
+    }, 'the cloned voice');
+    function initViz() { OUT.pause(); }   // (kept name) stop the result player
+    function showResult(blob) {           // a new clone is ready
+      S.blob = blob; S.xpName = null;
+      D.os.classList.add('on'); OUT.load(blob);
+      D.os.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /* DOWNLOAD DIALOG — fades the page; name the file, pick a format, download.
+       The server's ffmpeg converts the WAV (POST /export); WAV still works without it. */
+    const XP_FORMATS = [
+      ['mp3', 'Small file · plays everywhere'],
+      ['wav', 'Uncompressed · best for editing'],
+      ['flac', 'Lossless · smaller than WAV'],
+      ['m4a', 'AAC · iPhone, Mac, WhatsApp'],
+      ['ogg', 'Vorbis · open format'],
+      ['opus', 'Smallest file · voice notes'],
+      ['aiff', 'Uncompressed · Apple apps'],
+      ['wma', 'Windows Media'],
+    ];
+    const XP_KEY = 'voxai.dlFormat';
+    (function buildExport() {
+      const x = document.createElement('div'); x.className = 'xp'; x.id = 'xp';
+      x.innerHTML =
+        '<div class="xp-bg" id="xp-bg"></div>' +
+        '<div class="xp-card" role="dialog" aria-modal="true" aria-labelledby="xp-t">' +
+        '<button type="button" class="coach-x" id="xp-x" aria-label="Close">✕</button>' +
+        '<div class="coach-k">Save your audio</div>' +
+        '<div class="coach-t" id="xp-t">Download</div>' +
+        '<div class="xp-row">' +
+        '<label class="xp-field name"><span class="xp-lbl">File name</span>' +
+        '<span class="xp-namebox"><input class="xp-name" id="xp-name" maxlength="80" spellcheck="false" autocomplete="off">' +
+        '<span class="xp-ext" id="xp-ext">.mp3</span></span></label>' +
+        '<label class="xp-field fmt"><span class="xp-lbl">Format</span><select class="xp-sel" id="xp-fmt">' +
+        XP_FORMATS.map(f => '<option value="' + f[0] + '">' + f[0].toUpperCase() + '</option>').join('') +
+        '</select></label></div>' +
+        '<div class="xp-foot"><span class="xp-desc" id="xp-desc"></span>' +
+        '<button type="button" class="xp-go" id="xp-go">' +
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">' +
+        '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+        '<span id="xp-go-t">Download</span></button></div></div>';
+      document.body.appendChild(x);
+    })();
+    const XP = { el: $('xp'), name: $('xp-name'), fmt: $('xp-fmt'), ext: $('xp-ext'), desc: $('xp-desc'), go: $('xp-go'), goT: $('xp-go-t') };
+    function xpCleanName(s) {   // safe on Windows / Mac / phones; drops a typed extension
+      s = (s || '').replace(/[\\\/:*?"<>|\u0000-\u001f]/g, '').replace(/\s+/g, ' ').trim();
+      s = s.replace(new RegExp('\\.(' + XP_FORMATS.map(f => f[0]).join('|') + ')$', 'i'), '').replace(/^[ .]+|[ .]+$/g, '');
+      return s.slice(0, 80);
+    }
+    function xpDefaultName() {  // first words of the text, e.g. "hey-it-is-deepak"
+      const words = (D.ti.value || '').replace(/\[[^\]]*\]/g, ' ').match(/[\p{L}\p{M}\p{N}]+/gu) || [];
+      return words.slice(0, 4).join('-').toLowerCase().slice(0, 40) || 'cloned-voice';
+    }
+    function xpSync() {
+      const f = XP_FORMATS.find(f => f[0] === XP.fmt.value) || XP_FORMATS[0];
+      XP.ext.textContent = '.' + f[0]; XP.desc.textContent = f[1];
+    }
+    function xpOpen() {
+      if (!S.blob) { toast('CLONE A VOICE FIRST', 'er'); return; }
+      let fmt = 'mp3'; try { fmt = localStorage.getItem(XP_KEY) || 'mp3' } catch (e) { }
+      XP.fmt.value = XP_FORMATS.some(f => f[0] === fmt) ? fmt : 'mp3';
+      XP.name.value = S.xpName || xpDefaultName(); xpSync();
+      XP.el.classList.add('on');
+      setTimeout(() => { XP.name.focus(); XP.name.select(); }, 50);
+    }
+    function xpClose() { XP.el.classList.remove('on'); }
+    async function xpDownload() {
+      const fmt = XP.fmt.value, name = xpCleanName(XP.name.value) || 'cloned-voice';
+      XP.go.disabled = true; XP.goT.textContent = 'Preparing…';
+      let out = null;
+      try {
+        const fd = new FormData();
+        fd.append('audio', new File([S.blob], 'voice.wav', { type: 'audio/wav' })); fd.append('format', fmt);
+        const r = await fetch(`${API}/export`, { method: 'POST', body: fd });
+        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || 'CONVERSION FAILED');
+        out = await r.blob();
+      } catch (e) {
+        if (fmt === 'wav') out = S.blob;          // the clone already is a WAV
+        else toast(String(e.message || 'CONVERSION FAILED').toUpperCase(), 'er');
+      } finally { XP.go.disabled = false; XP.goT.textContent = 'Download'; }
+      if (!out) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(out); a.download = name + '.' + fmt;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      try { localStorage.setItem(XP_KEY, fmt) } catch (e) { }
+      S.xpName = name; xpClose();
+      toast('SAVED: ' + (name + '.' + fmt).toUpperCase(), 'ok');
+    }
+    D.dl.addEventListener('click', xpOpen);
+    XP.fmt.addEventListener('change', xpSync);
+    XP.go.addEventListener('click', xpDownload);
+    XP.name.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); xpDownload(); } });
+    $('xp-x').addEventListener('click', xpClose);
+    $('xp-bg').addEventListener('click', xpClose);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && XP.el.classList.contains('on')) xpClose(); });
+
     function setFile(f) {
-      if (!f) return; S.file = f; S.rec = null; S.selProf = null;
+      if (!f) return; S.file = f; S.rec = null; S.selProf = null; $('rt').value = '';
       D.fn.textContent = f.name; D.fcho.classList.add('on');
-      D.rq.classList.add('on'); animBars(); D.srcDone.classList.add('on');
+      D.srcDone.classList.add('on'); showPreview(f, 'Your sample · ' + f.name); S.coachArm = true;
       renderProfs(); toast('LOADED: ' + f.name.toUpperCase(), 'ok');
     }
     D.fi.addEventListener('change', () => setFile(D.fi.files[0]));
@@ -2874,6 +3545,7 @@
       } frame();
     }
     async function startRec() {
+      pvPause();   // don't record the preview through the speakers
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         S.chunks = [];
@@ -2884,7 +3556,7 @@
         S.mr.onstop = async () => {
           const raw = new Blob(S.chunks, { type: S.mr.mimeType || 'audio/webm' });
           toast('PROCESSING_', '');
-          try { S.rec = await blobToWav(raw); S.file = null; S.selProf = null; D.srcDone.classList.add('on'); D.rq.classList.add('on'); animBars(); renderProfs(); toast('CAPTURED!', 'ok'); }
+          try { S.rec = await blobToWav(raw); S.file = null; S.selProf = null; $('rt').value = ''; D.srcDone.classList.add('on'); showPreview(S.rec, 'Your recording'); S.coachArm = true; renderProfs(); toast('CAPTURED!', 'ok'); }
           catch (e) { toast('ERROR: ' + e.message.toUpperCase(), 'er') }
         };
         S.mr.start(250); S.recording = true;
@@ -2921,13 +3593,169 @@
       D.cc.className = 'char-c' + (n > 450 ? ' warn' : '') + (n >= 500 ? ' over' : '');
     });
 
+    /* SOUNDS COACH — after each newly uploaded / recorded voice, the first click in the text
+       box fades the page and spotlights the sound buttons, with music notes flying from them
+       to a card (above) that plays a before/after sample. Optional; closes on ✕, a click on
+       the faded area, Esc, picking a sound or typing. The ? shows it any time. */
+    const COACH_NOTE1 = '<svg viewBox="0 0 24 24"><ellipse cx="8" cy="18" rx="4.2" ry="3.1" transform="rotate(-20 8 18)"/>' +
+      '<rect x="10.6" y="3" width="2" height="15.5"/><path d="M12.6 3c3.2 1 5.4 3.4 5 6.6-1.1-1.7-3-2.5-5-2.7z"/></svg>';      // ♪
+    const COACH_NOTE2 = '<svg viewBox="0 0 24 24"><ellipse cx="5.5" cy="19" rx="3.6" ry="2.7" transform="rotate(-20 5.5 19)"/>' +
+      '<ellipse cx="17.5" cy="17" rx="3.6" ry="2.7" transform="rotate(-20 17.5 17)"/><rect x="8" y="5.2" width="1.8" height="13.8"/>' +
+      '<rect x="20" y="3.2" width="1.8" height="13.8"/><path d="M8 5.2 21.8 3.2v3.2L8 8.4z"/></svg>';                          // ♫
+    (function buildCoach() {
+      const c = document.createElement('div'); c.id = 'coach'; c.className = 'coach';
+      c.innerHTML =
+        '<div class="coach-dim"></div><div class="coach-dim"></div><div class="coach-dim"></div><div class="coach-dim"></div>' +
+        '<div class="coach-hole" id="coach-hole"></div>' +
+        '<div class="coach-notes" id="coach-notes" aria-hidden="true">' +
+        [6, 28, 50, 72].map((x, i) => '<span class="coach-note" style="left:' + x + '%;animation-delay:' + (i * .55) + 's">' +
+          (i % 2 ? COACH_NOTE2 : COACH_NOTE1) + '</span>').join('') + '</div>' +
+        '<div class="coach-card" id="coach-card" role="dialog" aria-labelledby="coach-t">' +
+        '<button type="button" class="coach-x" id="coach-x" aria-label="Close tip">✕</button>' +
+        '<div class="coach-k">Optional</div>' +
+        '<div class="coach-t" id="coach-t">Add real sounds</div>' +
+        coachDemo('/static/demo/sounds-normal.mp3', 'Normal', 'That\'s so funny, see you tomorrow!') +
+        coachDemo('/static/demo/sounds-laugh.mp3', 'With [laugh]', 'That\'s so funny <b>[laugh]</b> see you tomorrow!') +
+        '<div class="coach-foot">Click a sound above to add it</div>' +
+        '</div>';
+      document.body.appendChild(c);
+    })();
+    function coachDemo(src, label, line) {   // one before/after sample row
+      return '<button type="button" class="coach-demo" data-src="' + src + '" aria-label="Play sample: ' + label + '">' +
+        '<span class="coach-play">' + coachIco(false) + '</span>' +
+        '<span><span class="coach-lbl">' + label + '</span><span class="coach-line">' + line + '</span></span>' +
+        '<i class="coach-bar"></i></button>';
+    }
+    function coachIco(playing) {
+      return '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">' +
+        (playing ? '<rect x="5" y="4" width="5" height="16"/><rect x="14" y="4" width="5" height="16"/>' : '<polygon points="6 3 20 12 6 21 6 3"/>') + '</svg>';
+    }
+    // Sample playback: one clip at a time; pauses the other players on the page.
+    // When the card opens it plays the demo by itself: NORMAL, then WITH [LAUGH] (the
+    // playing row blinks); after that the rows play on tap.
+    const coachAu = new Audio(); let coachBtn = null;
+    const coachRows = () => [...document.querySelectorAll('#coach .coach-demo')];
+    function coachStop() {
+      coachAu.pause();
+      if (coachBtn) {
+        coachBtn.classList.remove('on', 'auto'); coachBtn.querySelector('.coach-play').innerHTML = coachIco(false);
+        coachBtn.style.setProperty('--p', 0);
+      }
+      coachBtn = null;
+    }
+    function coachPlay(btn, auto) {
+      coachStop(); pauseAllPlayers('coach');
+      coachBtn = btn; btn.classList.add('on'); btn.classList.toggle('auto', !!auto);
+      btn.querySelector('.coach-play').innerHTML = coachIco(true);
+      coachAu.src = btn.dataset.src;
+      return coachAu.play();
+    }
+    function coachCancelAuto() {
+      S.coachAuto = false; clearTimeout(S.coachAutoT);
+      coachRows().forEach(r => r.classList.remove('invite'));
+    }
+    function coachAutoPlay(i) {   // demo step i; if the browser blocks sound, the row's ▶ blinks instead
+      const row = coachRows()[i]; if (!S.coachAuto || !row) { S.coachAuto = false; return; }
+      coachPlay(row, true).catch(e => {
+        if (coachBtn !== row || e.name === 'AbortError') return;     // replaced by a tap: not an error
+        coachStop(); S.coachAuto = false; row.classList.add('invite');
+      });
+    }
+    function coachStartAuto() { coachCancelAuto(); S.coachAuto = true; coachAutoPlay(0); }
+    coachRows().forEach(btn => btn.addEventListener('click', () => {
+      coachCancelAuto();                                   // a tap takes over from the demo
+      if (coachBtn === btn) { coachStop(); return; }
+      coachPlay(btn, false).catch(e => {
+        if (coachBtn !== btn || e.name === 'AbortError') return;
+        coachStop(); toast('CANNOT PLAY SAMPLE', 'er');
+      });
+    }));
+    coachAu.addEventListener('timeupdate', () => {
+      if (coachBtn && coachAu.duration) coachBtn.style.setProperty('--p', coachAu.currentTime / coachAu.duration);
+    });
+    coachAu.addEventListener('ended', () => {
+      const b = coachBtn; if (!b) return;
+      b.style.setProperty('--p', 1); setTimeout(() => { if (coachBtn === b) coachStop(); }, 250);
+      if (S.coachAuto) {                                   // demo: NORMAL -> WITH [LAUGH] -> done
+        const next = coachRows().indexOf(b) + 1;
+        if (next < coachRows().length) S.coachAutoT = setTimeout(() => coachAutoPlay(next), 600);
+        else S.coachAuto = false;
+      }
+    });
+    function placeCoach() {
+      const c = document.getElementById('coach'); if (!c || !c.classList.contains('on')) return;
+      const r = document.getElementById('tag-row').getBoundingClientRect(), pad = 8;
+      const vw = document.documentElement.clientWidth, vh = window.innerHeight;
+      const L = Math.max(0, r.left - pad), T = Math.max(0, r.top - pad);
+      const R = Math.min(vw, r.right + pad), B = Math.min(vh, Math.max(T, r.bottom + pad));
+      const box = (el, l, t, w, h) => Object.assign(el.style,
+        { left: l + 'px', top: t + 'px', width: Math.max(0, w) + 'px', height: Math.max(0, h) + 'px' });
+      const dim = c.querySelectorAll('.coach-dim');   // four panels around the spotlight
+      box(dim[0], 0, 0, vw, T); box(dim[1], 0, B, vw, vh - B); box(dim[2], 0, T, L, B - T); box(dim[3], R, T, vw - R, B - T);
+      box(document.getElementById('coach-hole'), L, T, R - L, B - T);
+      const card = document.getElementById('coach-card'), notes = document.getElementById('coach-notes');
+      card.style.width = vw < 500 ? (R - L) + 'px' : '';                 // phones: same width as the buttons box
+      const cw = card.offsetWidth, ch = card.offsetHeight, gap = 60;
+      const above = T - gap - ch >= 12 || B + gap + ch + 12 > vh;     // card above the buttons; below only if no room
+      const left = Math.max(12, Math.min(vw - cw - 12, R - cw));         // right edge lined up with the buttons box
+      card.style.left = left + 'px';
+      card.style.top = (above ? T - gap - ch : B + gap) + 'px';
+      box(notes, left, above ? T - gap : B, cw, gap);                    // notes fly across the gap, toward the card
+      notes.classList.toggle('down', !above);
+    }
+    function openCoach(force) {
+      const c = document.getElementById('coach'), row = document.getElementById('tag-row');
+      if (!c || c.classList.contains('on') || row.classList.contains('off')) return;   // Tamil: no sounds
+      if (!force) {   // automatic: once per newly uploaded / recorded voice, unless sounds are already in use
+        if (!S.coachArm || !(S.file || S.rec)) return;
+        if (/\[[a-z ]+\]/i.test(document.getElementById('ti').value)) { S.coachArm = false; return; }
+      }
+      S.coachArm = false;
+      c.classList.add('on'); row.classList.add('hint'); document.getElementById('tag-help').classList.add('on');
+      // Phones: keep the keyboard closed while the card shows (it would cover it);
+      // closing the card puts the cursor back in the text box.
+      if (window.matchMedia && matchMedia('(pointer: coarse)').matches && document.activeElement === D.ti) {
+        S.coachRefocus = true; D.ti.blur();
+      }
+      placeCoach();
+      coachStartAuto();   // inside the click/tap that opened the card, so the browser allows sound
+      // room above the buttons for the card: scroll so they sit in the lower part of the screen
+      const r = row.getBoundingClientRect(), need = document.getElementById('coach-card').offsetHeight + 80;
+      if (r.top < need || r.bottom > window.innerHeight - 16)
+        window.scrollBy({ top: r.top - Math.max(need, window.innerHeight * .62), behavior: 'smooth' });
+    }
+    function closeCoach() {
+      const c = document.getElementById('coach'); if (!c || !c.classList.contains('on')) return;
+      c.classList.remove('on'); coachCancelAuto(); coachStop(); S.coachRefocus = false;
+      document.getElementById('tag-row').classList.remove('hint');
+      document.getElementById('tag-help').classList.remove('on');
+    }
+    let coachRaf = 0;
+    const coachFollow = () => { cancelAnimationFrame(coachRaf); coachRaf = requestAnimationFrame(placeCoach); };
+    window.addEventListener('scroll', coachFollow, { passive: true });
+    window.addEventListener('resize', coachFollow);
+    D.ti.addEventListener('focus', () => openCoach(false));
+    D.ti.addEventListener('click', () => openCoach(false));   // box may still have focus (file dragged in)
+    D.ti.addEventListener('keydown', e => { if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Enter') closeCoach(); });
+    const closeAndType = () => { const back = S.coachRefocus; closeCoach(); if (back) D.ti.focus(); };
+    document.querySelectorAll('#coach .coach-dim').forEach(d => d.addEventListener('click', closeAndType));
+    document.getElementById('coach-x').addEventListener('click', closeAndType);
+    if (window.visualViewport) visualViewport.addEventListener('resize', coachFollow);   // phone keyboard / zoom
+    document.querySelectorAll('.tag-chip').forEach(b => b.addEventListener('click', closeCoach));
+    document.getElementById('tag-help').addEventListener('click', () =>
+      document.getElementById('coach').classList.contains('on') ? closeCoach() : openCoach(true));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCoach(); });
+
     /* CLONE */
     D.cb.addEventListener('click', async () => {
       const text = D.ti.value.trim();
       if (!text) { toast('ENTER TEXT FIRST', 'er'); return }
       if (!S.file && !S.rec && !S.selProf) { toast('ADD VOICE SOURCE FIRST', 'er'); return }
+      const lang = curLang(), refText = $('rt').value.trim();
       setLoad(true);
-      const fd = new FormData(); fd.append('text', text); fd.append('language', D.ls.value); fd.append('speed', 1.0);
+      const fd = new FormData(); fd.append('text', text); fd.append('language', lang); fd.append('speed', 1.0);
+      if (INDIC[lang] && refText) fd.append('ref_text', refText);
+      if (INDIC[lang]) fd.append('style', $('tstyle').value);
       try {
         if (S.selProf) { fd.append('profile_name', S.selProf); }
         else {
@@ -2940,10 +3768,17 @@
         const r = await fetch(`${API}/clone`, { method: 'POST', body: fd }); clearInterval(timer);
         if (!r.ok) { const e = await r.json().catch(() => ({ detail: 'FAILED' })); throw new Error(e.detail) }
         D.pf.style.width = '100%';
-        const blob = await r.blob(); S.blob = blob;
-        const url = URL.createObjectURL(blob); D.ae.src = url; D.dl.href = url;
-        D.os.classList.add('on'); D.os.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        toast('CLONE COMPLETE!', 'ok'); initViz();
+        const spoken = r.headers.get('X-Spoken-Text'), refUsed = r.headers.get('X-Ref-Text');
+        const so = $('spoken-out');
+        if (spoken) {
+          so.style.display = 'block';
+          so.textContent = 'Spoken: ' + decodeURIComponent(spoken);
+          const replaced = r.headers.get('X-Ref-Replaced') === '1';
+          if (refUsed && (replaced || !$('rt').value.trim())) $('rt').value = decodeURIComponent(refUsed);
+          if (replaced) toast('YOUR TRANSCRIPT DID NOT MATCH THE SAMPLE — USED THE DETECTED WORDS', '');
+        } else so.style.display = 'none';
+        showResult(await r.blob());
+        toast('CLONE COMPLETE!', 'ok');
       } catch (e) { toast(String(e.message).toUpperCase(), 'er') }
       finally { setLoad(false) }
     });
@@ -2961,35 +3796,14 @@
       }
     }
 
-    /* VISUALISER */
-    let vizReady = false;
-    function ensureViz() {
-      if (vizReady) { if (S.oac && S.oac.state === 'suspended') S.oac.resume(); return }
-      const ac = new AudioContext(); S.oac = ac;
-      const an = ac.createAnalyser(); an.fftSize = 128;
-      ac.createMediaElementSource(D.ae).connect(an); an.connect(ac.destination);
-      vizReady = true;
-      const cv = D.oc, cx = cv.getContext('2d');
-      function draw() {
-        requestAnimationFrame(draw);
-        const buf = new Uint8Array(an.frequencyBinCount); an.getByteFrequencyData(buf);
-        const W = cv.width = cv.offsetWidth, H = cv.height = cv.offsetHeight; cx.clearRect(0, 0, W, H);
-        const bw = W / buf.length;
-        buf.forEach((v, i) => { const h = (v / 255) * H; if (h < 1) return; cx.fillStyle = `rgba(26,23,20,${.08 + h / H * .82})`; cx.fillRect(i * bw + 1, H - h, bw - 2, h); });
-      } draw();
-    }
-    D.play.addEventListener('click', () => {
-      ensureViz();
-      if (D.ae.paused) { D.ae.play(); S.playing = true; D.pico.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'; D.play.classList.add('on'); }
-      else { D.ae.pause(); S.playing = false; D.pico.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>'; D.play.classList.remove('on'); }
-    });
-    D.ae.addEventListener('ended', () => { S.playing = false; D.pico.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>'; D.play.classList.remove('on'); });
-    function initViz() { S.playing = false; D.pico.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>'; D.play.classList.remove('on') }
 
     /* PROFILES */
     async function loadProfs() {
-      try { const r = await fetch(`${API}/profiles`); const d = await r.json(); S.profiles = d.profiles || []; }
-      catch { S.profiles = [] } renderProfs();
+      try {
+        const r = await fetch(`${API}/profiles`); const d = await r.json(); S.profiles = d.profiles || [];
+        S.profDetails = {}; (d.details || []).forEach(x => { S.profDetails[x.name] = x });
+      }
+      catch { S.profiles = []; S.profDetails = {} } renderProfs();
     }
     function renderProfs() {
       const el = D.pl2;
@@ -2997,16 +3811,19 @@
       el.innerHTML = '';
       S.profiles.forEach(p => {
         const t = document.createElement('div'); t.className = 'prof-chip' + (S.selProf === p ? ' on' : '');
-        t.innerHTML = `<span>${p}</span><span class="prof-x" data-p="${p}">×</span>`;
+        const pd = (S.profDetails || {})[p];
+        const tag = pd && pd.has_transcript && pd.language !== 'en' ? `<span class="prof-lang">${pd.language.toUpperCase()}</span>` : '';
+        t.innerHTML = `<span>${p}</span>${tag}<span class="prof-x" data-p="${p}">×</span>`;
         t.addEventListener('click', e => {
           const dp = e.target.dataset.p; if (dp) { delProf(dp); return }
-          S.selProf = S.selProf === p ? null : p; if (S.selProf) { S.file = null; S.rec = null; }
+          S.selProf = S.selProf === p ? null : p; $('rt').value = ''; if (S.selProf) { S.file = null; S.rec = null; hidePreview(); }
           renderProfs(); if (S.selProf) toast(`"${p.toUpperCase()}" SELECTED`, 'ok');
         }); el.appendChild(t);
       });
     }
     D.sp.addEventListener('click', async () => {
       const name = D.pn.value.trim(); if (!name) { toast('ENTER A NAME', 'er'); return }
+      if (!/^[A-Za-z0-9_-]{1,40}$/.test(name)) { toast('NAME: LETTERS, DIGITS, - _ ONLY', 'er'); return }
       const src = S.file || S.rec; if (!src) { toast('LOAD AUDIO FIRST', 'er'); return }
       try {
         toast('SAVING_', '');
@@ -3014,10 +3831,12 @@
         const wav = nc ? await blobToWav(src) : src;
         const fd = new FormData(); fd.append('profile_name', name);
         fd.append('voice_sample', new File([wav], 'voice.wav', { type: 'audio/wav' }));
+        fd.append('language', curLang());
+        const rt = $('rt').value.trim(); if (INDIC[curLang()] && rt) fd.append('ref_text', rt);
         const r = await fetch(`${API}/save-profile`, { method: 'POST', body: fd });
-        if (!r.ok) throw new Error();
+        if (!r.ok) { const e = await r.json().catch(() => ({ detail: 'SAVE FAILED' })); throw new Error(e.detail) }
         toast(`"${name.toUpperCase()}" SAVED!`, 'ok'); D.pn.value = ''; await loadProfs();
-      } catch { toast('SAVE FAILED', 'er') }
+      } catch (e) { toast(String(e.message || 'SAVE FAILED').toUpperCase(), 'er') }
     });
     async function delProf(name) {
       try {

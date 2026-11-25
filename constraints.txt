@@ -1,0 +1,9 @@
+# Versions that must not move (tested together locally; see Dockerfile).
+# chatterbox-tts 0.1.7 pins torch 2.6.0 + transformers 5.2.0; IndicF5's loose
+# deps would otherwise upgrade them. pyarrow >= 22 needs NumPy 2.
+torch==2.6.0
+torchaudio==2.6.0
+numpy==1.26.4
+transformers==5.2.0
+huggingface_hub==1.9.0
+pyarrow==21.0.0
