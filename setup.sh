@@ -34,9 +34,12 @@ source venv/bin/activate
 # Upgrade pip
 pip install --upgrade pip
 
-# Install dependencies — path is backend/requirements.txt
-echo "→ Installing dependencies (this may take a few minutes)..."
-pip install -r backend/requirements.txt
+# Install dependencies — same tested versions as the Dockerfile (constraints.txt pins them)
+echo "→ Installing dependencies (this may take several minutes)..."
+pip install "torch==2.6.0" "torchaudio==2.6.0"
+pip install -c constraints.txt "chatterbox-tts==0.1.7"
+pip install -c constraints.txt "git+https://github.com/ai4bharat/IndicF5.git"
+pip install -c constraints.txt -r backend/requirements.txt
 
 # Create runtime directories
 mkdir -p outputs profiles
