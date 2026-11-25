@@ -1352,6 +1352,18 @@
       text-transform: uppercase
     }
 
+    /* sample preview: hint + Re-record / Discard (Remove for uploads) */
+    .pv-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: 8px }
+    .pv-foot .pv-hint { margin-top: 0 }
+    .pv-acts { display: flex; gap: 6px; margin-left: auto }
+    .pv-act {
+      padding: 6px 10px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink);
+      font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+      cursor: inherit; transition: all .15s
+    }
+    .pv-act:hover, .pv-act:focus-visible { background: var(--ink); color: var(--cream); outline: none }
+    .pv[data-src="file"] #pv-redo { display: none }
+
     /* VINYL RECORDER */
     .rec-center {
       display: flex;
@@ -2689,7 +2701,13 @@
               <div class="pv-tip" id="pv-tip">0:00</div>
             </div>
           </div>
-          <div class="pv-hint">Click or drag the wave to listen from any second</div>
+          <div class="pv-foot">
+            <div class="pv-hint">Click or drag the wave to listen from any second</div>
+            <div class="pv-acts">
+              <button type="button" class="pv-act" id="pv-redo">↺ Re-record</button>
+              <button type="button" class="pv-act" id="pv-discard">✕ Discard</button>
+            </div>
+          </div>
           <audio id="pv-au" preload="auto"></audio>
         </div>      </div>
     </div>
@@ -3505,8 +3523,27 @@
       if (!f) return; S.file = f; S.rec = null; S.selProf = null; setRt('');
       D.fn.textContent = f.name; D.fcho.classList.add('on');
       D.srcDone.classList.add('on'); showPreview(f, 'Your sample · ' + f.name); S.coachArm = true;
+      PV.el.dataset.src = 'file'; $('pv-discard').textContent = '✕ Remove';
       renderProfs(); toast('LOADED: ' + f.name.toUpperCase(), 'ok');
     }
+    // Remove the current sample (wrong recording / wrong file) and go back to the empty state.
+    function clearSample() {
+      const wasRec = PV.el.dataset.src === 'rec';
+      S.file = null; S.rec = null; S.coachArm = false; setRt('');
+      try { D.fi.value = ''; } catch (e) { }
+      D.fcho.classList.remove('on'); D.fn.textContent = '—';
+      D.srcDone.classList.remove('on'); D.rtimer.textContent = '0:00';
+      hidePreview(); delete PV.el.dataset.src;
+      return wasRec;
+    }
+    $('pv-discard').addEventListener('click', () => {
+      toast(clearSample() ? 'RECORDING DISCARDED' : 'FILE REMOVED', '');
+    });
+    $('pv-redo').addEventListener('click', () => {   // discard and record again right away
+      clearSample(); switchTab('rec');
+      $('panel-rec').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      startRec();
+    });
     D.fi.addEventListener('change', () => setFile(D.fi.files[0]));
     D.dz.addEventListener('dragover', e => { e.preventDefault(); D.dz.classList.add('ov') });
     D.dz.addEventListener('dragleave', () => D.dz.classList.remove('ov'));
@@ -3578,7 +3615,8 @@
         S.mr.onstop = async () => {
           const raw = new Blob(S.chunks, { type: S.mr.mimeType || 'audio/webm' });
           toast('PROCESSING_', '');
-          try { S.rec = await blobToWav(raw); S.file = null; S.selProf = null; setRt(''); D.srcDone.classList.add('on'); showPreview(S.rec, 'Your recording'); S.coachArm = true; renderProfs(); toast('CAPTURED!', 'ok'); }
+          try { S.rec = await blobToWav(raw); S.file = null; S.selProf = null; setRt(''); D.srcDone.classList.add('on'); showPreview(S.rec, 'Your recording'); S.coachArm = true;
+            PV.el.dataset.src = 'rec'; $('pv-discard').textContent = '✕ Discard'; renderProfs(); toast('CAPTURED!', 'ok'); }
           catch (e) { toast('ERROR: ' + e.message.toUpperCase(), 'er') }
         };
         S.mr.start(250); S.recording = true;
