@@ -70,7 +70,10 @@ def _upload(folder: Path):
         from huggingface_hub import HfApi
         api = HfApi()
         with _lock:
-            api.create_repo(LOG_REPO, repo_type="dataset", private=True, exist_ok=True)
+            # Create the dataset only when missing: a token limited to writing this one
+            # dataset may not be allowed to create repositories.
+            if not api.repo_exists(LOG_REPO, repo_type="dataset"):
+                api.create_repo(LOG_REPO, repo_type="dataset", private=True, exist_ok=True)
             rel = folder.relative_to(_ROOT).as_posix()
             api.upload_folder(repo_id=LOG_REPO, repo_type="dataset", folder_path=str(folder),
                               path_in_repo=f"activity/{rel}", commit_message=f"activity: {rel}")
