@@ -76,8 +76,14 @@ Text ──► (Tamil: spoken-Tamil rewrite, numbers)     │
                            English: Chatterbox-Turbo │ Tamil: IndicF5 (+ auto transcript)
                                                     │
                                                     ▼
-   join with the speaker's pauses ──► match the speaker's intonation ──► 48 kHz, −16 LUFS ──► WAV / export
+   join with the speaker's pauses ──► match the speaker's intonation (+ Tamil: voice colour) ──► 48 kHz, −16 LUFS ──► WAV / export
 ```
+
+**English pacing.** The English engine tends to rush: it copies a fast speaker's tempo, and its pauses at commas and full stops vary from take to take. VOXAI generates one sentence at a time and joins sentences with a natural pause of about 0.6–0.7 s. Commas are read as a short breath. If the result still talks faster than about 4.4 syllables per second (roughly 150–160 words per minute with the pauses), it is gently slowed with the pitch kept, by at most 15%.
+
+**Voice colour (Tamil).** The Tamil engine copies the colour of a voice only approximately; one female clone, for example, came out duller (6–10 kHz "air" 8.4 dB low). VOXAI measures the speaker's long-term average spectrum on the sample and applies 75% of the smoothed difference as one gentle EQ curve, the "Match EQ" technique used in music production. It never boosts below the voice's own pitch range, and it caps the treble, so room rumble and hiss are never copied. Learned on part of a speaker's sample, the EQ brought the clone's spectrum closer to the speaker's *other* speech too (for example 2.5 → 1.8 dB), to within that voice's own natural variation, with the words unchanged. Two other ideas were tested and dropped because they lowered speaker similarity for some voices: moving the clone's pitch level to the speaker's, and re-voicing the Tamil output with voice conversion.
+
+**Raw recording.** The built-in recorder turns off the browser's call filters (noise suppression, echo cancellation, auto-gain), which thin the low end and smear the timbre a clone copies. Background noise is removed on the server instead, and only when there is any.
 
 **Intonation matching.** Cloned speech, especially Tamil in male voices, often comes out flatter than the speaker: its pitch melody moves about 1 semitone where real speech moves 3–5. VOXAI measures the speaker's own melody range on the voice sample. If the clone is flatter, it widens only the slow phrase melody (rises, falls and stressed words) back toward that range, using PSOLA resynthesis, which keeps the voice's timbre and timing. The small natural wobble of the voice is kept as it is, and clones that are already lively are left untouched.
 
@@ -167,6 +173,9 @@ Give `HF_TOKEN` the smallest access that works: read access to `ai4bharat/IndicF
 | `VOXAI_PACE` | `0.9` | Tamil reading pace relative to the speaker's own rate |
 | `VOXAI_ISOLATE` | `auto` | Voice isolation: `auto` (when the sample has background), `on`, `off` |
 | `VOXAI_INTONATION` | `on` | Match the speaker's intonation range (`off` to disable) |
+| `VOXAI_COLOUR` | `on` | Tamil: match the speaker's voice colour (`off` to disable) |
+| `VOXAI_EN_PACING` | `on` | English: sentence-by-sentence generation, natural pauses, speed cap (`off` to disable) |
+| `VOXAI_EN_MAX_RATE` | `4.4` | English: highest talking speed in syllables per second |
 | `VOXAI_THREADS` | `0` | CPU threads for PyTorch (0 = automatic) |
 | `PRELOAD_INDIC` | `1` | Load the Tamil model at startup |
 | `VOXAI_LOG_REPO` | — | Private dataset for the activity log (off when empty) |
@@ -240,6 +249,8 @@ Measured on the Hugging Face free CPU tier (2 vCPU, 16 GB RAM):
 2. One speaker only; music and background noise are removed, but a clean recording is still best.
 3. Speak at your normal pace: the clone copies the rhythm and style of the sample.
 4. Write Tamil text with punctuation; full stops and commas become natural pauses.
+5. For Tamil, a Tamil sample of at least 10 seconds gives the closest voice. In tests, a 7-second English sample scored 0.75 speaker similarity, against 0.92–0.93 for longer or Tamil samples (0.97 = the same person).
+6. Record with a normal microphone, not a phone call or a voice-chat app: call filters thin the voice. The built-in recorder captures raw audio for this reason.
 
 ## Troubleshooting
 

@@ -3718,11 +3718,17 @@
     async function startRec() {
       pvPause();   // don't record the preview through the speakers
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Record the voice as it really is: the browser's call filters (noise suppression,
+        // echo cancellation, auto gain) thin the low end and smear the timbre the clone
+        // copies. Background noise is removed on the server instead, only when there is any.
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 }
+        });
         S.chunks = [];
         const mimes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg', 'audio/mp4', ''];
         const mime = mimes.find(m => !m || (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m))) || '';
-        S.mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+        const opts = { audioBitsPerSecond: 128000 };
+        S.mr = new MediaRecorder(stream, mime ? { ...opts, mimeType: mime } : opts);
         S.mr.ondataavailable = e => { if (e.data && e.data.size > 0) S.chunks.push(e.data) };
         S.mr.onstop = async () => {
           const raw = new Blob(S.chunks, { type: S.mr.mimeType || 'audio/webm' });

@@ -21,6 +21,8 @@ import voiceprep as vp
 import activity
 import guard
 import intonation
+import pacing
+import timbre
 from urllib.parse import quote as _quote
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
@@ -95,6 +97,12 @@ PROMPT_TAG      = "|prompt-v3"   # transcript cache tag (v3: prompt window chose
 # Intonation matching (see intonation.py): a clone flatter than its speaker gets the
 # speaker's melody range back.  "off" switches it off.
 INTONATION      = os.environ.get("VOXAI_INTONATION", "on").strip().lower() != "off"
+# English pacing (see pacing.py): a sentence per generation joined with ~0.6 s, commas
+# read as a breath, talking speed capped at VOXAI_EN_MAX_RATE syllables/s.  "off" = as before.
+EN_PACING       = os.environ.get("VOXAI_EN_PACING", "on").strip().lower() != "off"
+# Tamil voice colour (see timbre.py): Match-EQ toward the speaker's own spectral balance.
+COLOUR          = os.environ.get("VOXAI_COLOUR", "on").strip().lower() != "off"
+pacing.MAX_RATE = float(os.environ.get("VOXAI_EN_MAX_RATE", str(pacing.MAX_RATE)))
 
 # One synthesis at a time: models are not thread-safe and the free CPU is tiny.
 SYNTH_LOCK = threading.Lock()
@@ -783,9 +791,10 @@ def professional_chain(wav_path: str, src_sr: int, ref_info: dict, engine: str =
 #  CHUNKED SYNTHESIS
 # ======================================================================
 
-def _split_text(text: str, max_chars: int = CHUNK_CHAR_LIMIT) -> list:
+def _split_text(text: str, max_chars: int = CHUNK_CHAR_LIMIT, group: bool = True) -> list:
     """Whole sentences per chunk (keeps intonation natural); a sentence longer than
-    max_chars is split at commas rather than left oversized."""
+    max_chars is split at commas rather than left oversized.  group=False: one
+    sentence per chunk (English pacing)."""
     pieces = []
     for sent in re.split(r'(?<=[.!?।])\s+', text.strip()):
         if len(sent) <= max_chars:
@@ -798,6 +807,8 @@ def _split_text(text: str, max_chars: int = CHUNK_CHAR_LIMIT) -> list:
             else:
                 cur = (cur + " " + part).strip()
         if cur: pieces.append(cur)
+    if not group:
+        return [p for p in pieces if p.strip()]
     chunks, cur = [], ""
     for p in pieces:
         if cur and len(cur) + len(p) + 1 > max_chars:
@@ -842,15 +853,18 @@ def _tidy_pauses(s: np.ndarray, sr: int, max_pause: float = 0.35,
     return np.concatenate(out)
 
 
-def _join_natural(segs: list, texts: list, sr: int, rhythm: dict = None) -> np.ndarray:
+def _join_natural(segs: list, texts: list, sr: int, rhythm: dict = None,
+                  min_comma: float = 0.0, min_sentence: float = 0.0) -> np.ndarray:
     """Join chunks with the SPEAKER'S OWN pause lengths, measured from the voice sample
-    (voiceprep.speaker_rhythm): a short pause after a comma, a long one after a sentence."""
+    (voiceprep.speaker_rhythm): a short pause after a comma, a long one after a sentence
+    (never shorter than min_comma / min_sentence)."""
     r = rhythm or vp.DEFAULT_RHYTHM
     out = []
     for i, seg in enumerate(segs):
         seg = _tidy_pauses(seg, sr, max_pause=max(0.6, 1.5 * r["sentence"]), head=0.06, tail=0.12)
         if i:
-            pause = r["comma"] if texts[i - 1].rstrip()[-1:] in ",;:" else r["sentence"]
+            pause = (max(r["comma"], min_comma) if texts[i - 1].rstrip()[-1:] in ",;:"
+                     else min(max(r["sentence"], min_sentence), max(0.8, min_sentence)))
             out.append(np.zeros(int(sr * pause), np.float32))
         f = min(int(sr * 0.005), len(seg) // 2)
         if f:
@@ -900,16 +914,24 @@ def _generate_chunk(text: str, exaggeration: float, cfg_weight: float) -> torch.
 def synthesise(text: str, speaker_wav: str, exaggeration: float,
                cfg_weight: float, sr: int, voice_key: str = None,
                rhythm: dict = None) -> torch.Tensor:
-    chunks = _split_text(text)
-    logger.info("Synthesising %d chunks  engine=%s  ex=%.2f cfg=%.2f",
-                len(chunks), cb_engine, exaggeration, cfg_weight)
+    paced = EN_PACING and cb_engine == "turbo"
+    if paced:   # a sentence per generation, commas read as a breath (see pacing.py)
+        chunks = pacing.merge_short(_split_text(text, group=False))
+        reads = [pacing.breath_marks(c) for c in chunks]
+    else:
+        chunks = _split_text(text)
+        reads = chunks
+    logger.info("Synthesising %d chunks  engine=%s  ex=%.2f cfg=%.2f%s",
+                len(chunks), cb_engine, exaggeration, cfg_weight, "  (paced)" if paced else "")
     _prepare_voice(speaker_wav, exaggeration, voice_key)
     segs = []
-    for i, chunk in enumerate(chunks):
+    for i, chunk in enumerate(reads):
         logger.info("  Chunk %d/%d: '%s...'", i+1, len(chunks), chunk[:60])
         w = _generate_chunk(chunk, exaggeration, cfg_weight)
         segs.append(w.squeeze(0).cpu().numpy())
-    result = _join_natural(segs, chunks, sr, rhythm)
+    result = _join_natural(segs, chunks, sr, rhythm,
+                           min_comma=pacing.COMMA_PAUSE if paced else 0.0,
+                           min_sentence=pacing.SENTENCE_PAUSE if paced else 0.0)
     return torch.from_numpy(result.astype(np.float32)).unsqueeze(0)
 
 
@@ -948,6 +970,8 @@ def _voice_source(speaker_wav: str, key: str = None) -> tuple:
             sf.write(path, s, INDIC_SR)
         rhythm = vp.speaker_rhythm(s, INDIC_SR)
         rhythm["melody"] = intonation.melody_sd(s, INDIC_SR)    # the speaker's own intonation range
+        rhythm["f0"] = intonation.median_hz(s, INDIC_SR)        # their pitch level
+        rhythm["ltas"] = timbre.ltas(s, INDIC_SR)               # their voice colour (spectral balance)
         logger.info("Voice sample: %s; speaker's pauses %.2fs short / %.2fs long (%d found); melody %s st",
                     note, rhythm["comma"], rhythm["sentence"], rhythm["pauses"],
                     f"{rhythm['melody']:.1f}" if rhythm["melody"] else "?")
@@ -1425,15 +1449,31 @@ def clone(
                                         voice_key=voice_key, rhythm=rhythm)
                     engine = "chatterbox"
 
-                # Give a flat clone the speaker's own melody range back (intonation.py).
+                # Give a flat clone the speaker's own melody range back (intonation.py) and,
+                # for English, bring a rushed delivery down to a comfortable speed (pacing.py)
+                # -- both in one resynthesis.
                 tone_note = "intonation: off"
-                if INTONATION:
-                    w_np = wav.squeeze(0).cpu().numpy().astype(np.float32)
-                    w2, tone_note = intonation.match(w_np, src_sr, (rhythm or {}).get("melody"))
+                w_np = wav.squeeze(0).cpu().numpy().astype(np.float32)
+                stretch = 1.0
+                if engine == "chatterbox" and EN_PACING and cb_engine == "turbo":
+                    rate = pacing.talk_rate(w_np, src_sr, text)
+                    stretch = 1.0 / pacing.tempo_for(rate)
+                    if rate:
+                        logger.info("English pace: %.1f syllables/s while talking (cap %.1f)", rate, pacing.MAX_RATE)
+                if INTONATION or stretch != 1.0:
+                    w2, tone_note = intonation.match(w_np, src_sr,
+                                                     (rhythm or {}).get("melody") if INTONATION else None, stretch)
                     if w2 is not w_np:
                         if engine == "chatterbox":     # re-apply the AI watermark after the change
                             w2 = np.asarray(cb_model.watermarker.apply_watermark(w2, sample_rate=src_sr), np.float32)
                         wav = torch.from_numpy(np.ascontiguousarray(w2)).unsqueeze(0)
+                # Tamil: give the clone the speaker's own voice colour (timbre.py).
+                if is_indic and COLOUR:
+                    w_np = wav.squeeze(0).cpu().numpy().astype(np.float32)
+                    w3, colour_note = timbre.match(w_np, src_sr, (rhythm or {}).get("ltas"), (rhythm or {}).get("f0"))
+                    tone_note += "; " + colour_note
+                    if w3 is not w_np:
+                        wav = torch.from_numpy(np.ascontiguousarray(w3)).unsqueeze(0)
 
                 raw_wav_path = str(out_path) + "_raw.wav"
                 torchaudio.save(raw_wav_path, wav.cpu(), src_sr)
