@@ -1876,13 +1876,15 @@
 
     .lang-inline-dropdown.open {
       display: block;
-      max-height: 600px;
+      max-height: min(440px, 62vh);
+      overflow-y: auto;
+      overscroll-behavior: contain
     }
 
     .lang-group-hdr {
       padding: 6px clamp(12px, 2.5vw, 16px);
       font-family: var(--mono);
-      font-size: 7px;
+      font-size: 9px;
       letter-spacing: 3px;
       color: var(--muted);
       text-transform: uppercase;
@@ -2594,6 +2596,41 @@
     textarea:focus::placeholder {
       animation: cursorBlink .8s step-end infinite
     }
+
+    /* READABLE SMALL LABELS — the mono captions were 7–9px; this keeps the look but
+       makes them legible on every screen. */
+    .logo-sub { font-size: 10.5px }
+    .hero-label { font-size: 10.5px }
+    .dz-hint { font-size: 10px; line-height: 1.5 }
+    .char-c { font-size: 10px }
+    .sd { font-size: 10px }
+    .lang-badge { font-size: 9px }
+    .lang-tag-ok, .lang-tag-cs { font-size: 9px }
+    .prof-chip { font-size: 11px; padding: 6px 12px }
+    .prof-lang { font-size: 10px }
+    .ft-role, .ft-copy { font-size: 9px }
+    .ft-mail { font-size: 10.5px }
+
+    @media (max-width: 374px) {
+      .logo-sub { font-size: 9px; letter-spacing: 1.5px; white-space: nowrap }
+    }
+
+    /* LARGE MONITORS — scale the whole column up so it isn't a thin strip of tiny text */
+    @media (min-width: 1700px) and (min-height: 860px) {
+      .shell, .toast { zoom: 1.15 }
+    }
+
+    @media (min-width: 2200px) and (min-height: 1150px) {
+      .shell, .toast { zoom: 1.35 }
+    }
+
+    /* TOUCH SCREENS — finger-sized targets */
+    @media (pointer: coarse) {
+      .prof-chip { min-height: 38px }
+      .prof-x { padding: 8px 4px 8px 10px; margin: -8px -6px -8px 0 }
+      .ft-mail { padding: 10px 0; margin-top: -4px }
+      .lang-opt { min-height: 48px }
+    }
   </style>
 </head>
 
@@ -2812,17 +2849,17 @@
         <select id="ls" style="display:none">
           <!-- Every selectable language needs an option here, otherwise setting
                .value fails silently and the request is sent as English. -->
+          <option value="ta" selected>Tamil</option>
           <option value="en">English</option>
-          <option value="ta">Tamil</option>
         </select>
 
         <div class="lang-select-wrap" id="lang-wrap">
           <!-- Trigger button -->
           <button class="lang-select-btn" type="button" onclick="toggleLangDropdown()" id="lang-btn">
             <div class="lang-val">
-              <span class="lang-flag" id="lang-flag">🇬🇧</span>
-              <span id="lang-display">English</span>
-              <span class="lang-badge" id="lang-status-badge">AVAILABLE</span>
+              <span class="lang-flag" id="lang-flag">🇮🇳</span>
+              <span id="lang-display">Tamil</span>
+              <span class="lang-badge" id="lang-status-badge">BETA</span>
             </div>
             <span class="lang-arrow">▼</span>
           </button>
@@ -2830,20 +2867,8 @@
           <!-- Inline expanding list — sits in normal document flow -->
           <div class="lang-inline-dropdown" id="lang-dropdown">
 
-            <div class="lang-group-hdr">Available Now</div>
-            <div class="lang-opt selectable active" data-val="en" data-flag="🇬🇧" onclick="selectLang(this)">
-              <div class="lang-opt-left">
-                <span class="lang-opt-flag">🇬🇧</span>
-                <div>
-                  <div class="lang-opt-name">English</div>
-                  <div class="lang-opt-native">English</div>
-                </div>
-              </div>
-              <span class="lang-tag-ok">AVAILABLE</span>
-            </div>
-
-            <div class="lang-group-hdr">South Asia</div>
-            <div class="lang-opt selectable" data-val="ta" data-flag="🇮🇳" onclick="selectLang(this)">
+            <div class="lang-group-hdr">Available now</div>
+            <div class="lang-opt selectable active" data-val="ta" data-flag="🇮🇳" onclick="selectLang(this)">
               <div class="lang-opt-left">
                 <span class="lang-opt-flag">🇮🇳</span>
                 <div>
@@ -2853,41 +2878,18 @@
               </div>
               <span class="lang-tag-ok">BETA</span>
             </div>
-
-            <div class="lang-group-hdr">Europe</div>
-            <div class="lang-opt" data-val="" data-flag="🇪🇸" onclick="selectLang(this)">
+            <div class="lang-opt selectable" data-val="en" data-flag="🇬🇧" onclick="selectLang(this)">
               <div class="lang-opt-left">
-                <span class="lang-opt-flag">🇪🇸</span>
+                <span class="lang-opt-flag">🇬🇧</span>
                 <div>
-                  <div class="lang-opt-name">Spanish</div>
-                  <div class="lang-opt-native">Español</div>
+                  <div class="lang-opt-name">English</div>
+                  <div class="lang-opt-native">English</div>
                 </div>
               </div>
-              <span class="lang-tag-cs">COMING SOON</span>
+              <span class="lang-tag-ok">AVAILABLE</span>
             </div>
-            <div class="lang-opt" data-val="" data-flag="🇫🇷" onclick="selectLang(this)">
-              <div class="lang-opt-left">
-                <span class="lang-opt-flag">🇫🇷</span>
-                <div>
-                  <div class="lang-opt-name">French</div>
-                  <div class="lang-opt-native">Français</div>
-                </div>
-              </div>
-              <span class="lang-tag-cs">COMING SOON</span>
-            </div>
-
-            <div class="lang-group-hdr">Asia Pacific</div>
-            <div class="lang-opt" data-val="" data-flag="🇯🇵" onclick="selectLang(this)">
-              <div class="lang-opt-left">
-                <span class="lang-opt-flag">🇯🇵</span>
-                <div>
-                  <div class="lang-opt-name">Japanese</div>
-                  <div class="lang-opt-native">日本語</div>
-                </div>
-              </div>
-              <span class="lang-tag-cs">COMING SOON</span>
-            </div>
-
+            <!-- coming-soon languages are added by buildSoonLangs() -->
+            <div id="lang-soon"></div>
           </div>
         </div>
         <div class="indic-box" id="indic-box">
@@ -2897,8 +2899,8 @@
           <div class="indic-note" id="rt-show" style="display:none;margin-bottom:10px"></div>
           <div class="indic-lbl">Speaking style</div>
           <select id="tstyle" class="indic-style">
-            <option value="spoken">Natural spoken Tamil (பேச்சுத் தமிழ்) — recommended</option>
-            <option value="formal">Formal / as written (எழுத்துத் தமிழ்)</option>
+            <option value="spoken">Spoken · பேச்சுத் தமிழ்</option>
+            <option value="formal">Formal · எழுத்துத் தமிழ்</option>
           </select>
           <div class="indic-note" id="spoken-out" style="display:none"></div>
         </div>
@@ -3332,6 +3334,21 @@
       document.getElementById('lang-dropdown').classList.remove('open');
       document.getElementById('lang-wrap').classList.remove('open');
     }
+
+    /* A few major languages on the way (kept short on purpose). */
+    (function buildSoonLangs() {
+      const groups = [
+        ['Coming soon', [
+          ['Hindi', 'हिन्दी', '🇮🇳'], ['Spanish', 'Español', '🇪🇸'], ['French', 'Français', '🇫🇷'],
+          ['Japanese', '日本語', '🇯🇵']]]];
+      document.getElementById('lang-soon').innerHTML = groups.map(([hdr, list]) =>
+        `<div class="lang-group-hdr">${hdr}</div>` + list.map(([name, native, flag]) =>
+          `<div class="lang-opt" data-val="" data-flag="${flag}" onclick="selectLang(this)">` +
+          `<div class="lang-opt-left"><span class="lang-opt-flag">${flag}</span><div>` +
+          `<div class="lang-opt-name">${name}</div><div class="lang-opt-native">${native}</div></div></div>` +
+          `<span class="lang-tag-cs">COMING SOON</span></div>`).join('')).join('');
+    })();
+    onLangChange();   // Tamil is selected when the page opens
 
     /* Close when clicking outside */
     document.addEventListener('click', e => {
