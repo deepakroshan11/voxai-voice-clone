@@ -47,6 +47,20 @@ def allowed_origins() -> list:
     return out
 
 
+def origin_allowed(origin: str, headers) -> bool:
+    """Browser requests from other websites are refused by the app itself: on Spaces the
+    Hugging Face proxy answers CORS preflights for every origin, so the CORS headers alone
+    do not stop them.  Requests without an Origin (curl, same-origin GETs) pass; the rate
+    limit and queue cover those."""
+    if not origin:
+        return True
+    if origin in allowed_origins():
+        return True
+    host = origin.split("://", 1)[-1].rstrip("/").lower()
+    same = {h.strip().lower() for h in (headers.get("x-forwarded-host", ""), headers.get("host", "")) if h}
+    return host in same
+
+
 # ---------------------------------------------------------------- uploads
 def read_upload(upload) -> bytes:
     data = upload.file.read(MAX_UPLOAD_BYTES + 1)

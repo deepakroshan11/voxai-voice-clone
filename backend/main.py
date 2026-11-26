@@ -138,7 +138,10 @@ app.add_middleware(CORSMiddleware, allow_origins=guard.allowed_origins(), allow_
 
 @app.middleware("http")
 async def _limit_body(request: Request, call_next):
-    """Refuse oversized uploads before they are read into memory or onto disk."""
+    """Refuse other websites' browser requests, and oversized uploads before they are
+    read into memory or onto disk."""
+    if request.method != "OPTIONS" and not guard.origin_allowed(request.headers.get("origin", ""), request.headers):
+        return JSONResponse({"detail": "Requests from other websites are not allowed"}, status_code=403)
     cl = request.headers.get("content-length", "")
     if cl.isdigit() and int(cl) > guard.MAX_UPLOAD_BYTES + 2 * 1024 * 1024:
         return JSONResponse({"detail": f"File too large (max {guard.MAX_UPLOAD_MB:g} MB) -- use a shorter clip"},
