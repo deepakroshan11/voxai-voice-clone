@@ -22,6 +22,7 @@ import activity
 import guard
 import intonation
 import pacing
+import tamil_pace
 import timbre
 from urllib.parse import quote as _quote
 
@@ -102,6 +103,9 @@ INTONATION      = os.environ.get("VOXAI_INTONATION", "on").strip().lower() != "o
 EN_PACING       = os.environ.get("VOXAI_EN_PACING", "on").strip().lower() != "off"
 # Tamil voice colour (see timbre.py): Match-EQ toward the speaker's own spectral balance.
 COLOUR          = os.environ.get("VOXAI_COLOUR", "on").strip().lower() != "off"
+# Tamil pacing (see tamil_pace.py): one IndicF5 pass per sentence with its own time budget,
+# natural pauses between sentences, speed capped.  "off" = the whole text in one pass, as before.
+TA_PACING       = os.environ.get("VOXAI_TA_PACING", "on").strip().lower() != "off"
 pacing.MAX_RATE = float(os.environ.get("VOXAI_EN_MAX_RATE", str(pacing.MAX_RATE)))
 
 # One synthesis at a time: models are not thread-safe and the free CPU is tiny.
@@ -1045,7 +1049,7 @@ def _choose_transcript(typed: str, ref_path: str, key: str, profile_json,
 
 
 def _indic_generate(model, text: str, ref_path: str, ref_text: str, speech_s: float,
-                    rhythm: dict = None, pace: float = 1.0) -> np.ndarray:
+                    rhythm: dict = None, pace: float = 1.0, paced: bool = False) -> np.ndarray:
     """IndicF5 inference on a prepared prompt (see _indic_reference).
     * Output length from speech units, not UTF-8 bytes (bytes made English-voice
       prompts ask for ~3x too much audio -> babble).
@@ -1055,7 +1059,9 @@ def _indic_generate(model, text: str, ref_path: str, ref_text: str, speech_s: fl
       time, so the words were squeezed together (rushed).
     * The prompt is used as prepared: F5's own preprocessing would strip the
       trailing silence again and could clip audio but not its transcript.
-    * Silence clean-up never deletes speech (relative threshold, pauses shortened)."""
+    * Silence clean-up never deletes speech (relative threshold, pauses shortened).
+    * paced (one sentence per call, see tamil_pace.py): a short allowance per comma and
+      no long pause to pay for, so the budget goes into the words at the planned speed."""
     from f5_tts.infer.utils_infer import infer_batch_process
     r = rhythm or vp.DEFAULT_RHYTHM
     ref_wav, ref_sr = torchaudio.load(ref_path)
@@ -1065,9 +1071,13 @@ def _indic_generate(model, text: str, ref_path: str, ref_text: str, speech_s: fl
         rate = min(max(_speech_units(ref_text) / speech_s, INDIC_RATE_MIN), INDIC_RATE_MAX)
     speak = max(rate * pace, 8.0)
     n_sent, n_comma = vp.count_breaks(text)
-    pauses = n_sent * r["sentence"] + n_comma * r["comma"]
     units = _speech_units(text)
-    gen_s = units / speak + pauses + 0.4 + INDIC_PAUSE_MARK_S
+    if paced:
+        pauses = n_sent * tamil_pace.SENTENCE_PAUSE[0] + n_comma * tamil_pace.COMMA_ALLOW
+        gen_s = units / speak + pauses + tamil_pace.END_ALLOW + INDIC_PAUSE_MARK_S
+    else:
+        pauses = n_sent * r["sentence"] + n_comma * r["comma"]
+        gen_s = units / speak + pauses + 0.4 + INDIC_PAUSE_MARK_S
     logger.info("IndicF5: prompt %.1fs, %d units -> %.1fs (speaker %.1f units/s x pace %.2f, "
                 "%d+%d pauses = %.1fs)", ref_s, units, gen_s, rate, pace, n_sent, n_comma, pauses)
     audio, _, _ = infer_batch_process(
@@ -1080,18 +1090,28 @@ def _indic_generate(model, text: str, ref_path: str, ref_text: str, speech_s: fl
 
 
 def synthesise_indic(text: str, ref_path: str, ref_text: str, speech_s: float,
-                     rhythm: dict = None, pace: float = 1.0) -> torch.Tensor:
-    """IndicF5 zero-shot cloning. Returns (1, N) float tensor at INDIC_SR."""
+                     rhythm: dict = None, pace: float = 1.0, notes: list = None) -> torch.Tensor:
+    """IndicF5 zero-shot cloning. Returns (1, N) float tensor at INDIC_SR.
+    TA_PACING: a sentence per pass, joined by tamil_pace (even speed, natural pauses)."""
     model  = get_indic_model()
     ref_t  = _norm_ref_text(ref_text)
-    chunks = _split_text(text, INDIC_CHUNK_CHARS)
-    logger.info("IndicF5: synthesising %d chunks", len(chunks))
+    if TA_PACING:   # long sentences are still split at commas (_split_text)
+        chunks = [c for p in tamil_pace.pieces(text) for c in _split_text(p, INDIC_CHUNK_CHARS, group=False)]
+    else:
+        chunks = _split_text(text, INDIC_CHUNK_CHARS)
+    logger.info("IndicF5: synthesising %d chunks%s", len(chunks), " (a sentence each)" if TA_PACING else "")
     segs = []
     for i, chunk in enumerate(chunks):
         logger.info("  Chunk %d/%d: '%s...'", i + 1, len(chunks), chunk[:60])
         with torch.inference_mode():
-            segs.append(_indic_generate(model, chunk, ref_path, ref_t, speech_s, rhythm, pace))
-    result = _join_natural(segs, chunks, INDIC_SR, rhythm)
+            segs.append(_indic_generate(model, chunk, ref_path, ref_t, speech_s, rhythm, pace, paced=TA_PACING))
+    if TA_PACING:
+        result, note = tamil_pace.join(segs, chunks, INDIC_SR, rhythm,
+                                       slow=lambda s, sr, k: intonation.match(s, sr, None, k)[0])
+        if notes is not None:
+            notes.append(note)
+    else:
+        result = _join_natural(segs, chunks, INDIC_SR, rhythm)
     return torch.from_numpy(result.astype(np.float32)).unsqueeze(0)
 
 
@@ -1423,6 +1443,7 @@ def clone(
             voice_path, rhythm, prep_note = _voice_source(speaker_wav, voice_key)
 
             spoken_text = None
+            pace_notes = []
             if is_indic:
                 # Prepared prompt + a transcript verified against it (wrong one = lost words).
                 ref_path, speech_s, clipped = _indic_reference(speaker_wav, voice_key)
@@ -1436,7 +1457,7 @@ def clone(
                     try:
                         # Tamil speed is applied while generating (natural), not stretched after.
                         wav = synthesise_indic(spoken_text, ref_path, ref_text, speech_s,
-                                               rhythm, pace=INDIC_PACE * speed)
+                                               rhythm, pace=INDIC_PACE * speed, notes=pace_notes)
                     except HTTPException:
                         raise
                     except Exception as e:
@@ -1467,6 +1488,8 @@ def clone(
                         if engine == "chatterbox":     # re-apply the AI watermark after the change
                             w2 = np.asarray(cb_model.watermarker.apply_watermark(w2, sample_rate=src_sr), np.float32)
                         wav = torch.from_numpy(np.ascontiguousarray(w2)).unsqueeze(0)
+                if pace_notes:
+                    tone_note += "; " + "; ".join(pace_notes)
                 # Tamil: give the clone the speaker's own voice colour (timbre.py).
                 if is_indic and COLOUR:
                     w_np = wav.squeeze(0).cpu().numpy().astype(np.float32)
