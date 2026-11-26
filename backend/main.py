@@ -155,7 +155,8 @@ async def root():
     # Safe fallback: works locally AND on HF Spaces / Docker where frontend may be absent
     idx = FRONTEND_DIR / "index.html"
     if idx.exists():
-        return FileResponse(str(idx))
+        # Always ask the server (cheap: ETag) so visitors get a new version right after a deploy.
+        return FileResponse(str(idx), headers={"Cache-Control": "no-cache"})
     return {"status": "VOXAI backend running", "docs": "/docs"}
 
 cb_model = None
