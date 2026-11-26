@@ -69,15 +69,17 @@ VOXAI is a zero-shot voice cloning web application. A few seconds of someone's v
 ## How it works
 
 ```
-Voice sample ──► convert ──► isolate voice ──► pick cleanest window ──► measure rhythm
+Voice sample ──► convert ──► isolate voice ──► pick clean, lively window ──► measure rhythm + melody range
                                                     │
 Text ──► (Tamil: spoken-Tamil rewrite, numbers)     │
                                                     ▼
                            English: Chatterbox-Turbo │ Tamil: IndicF5 (+ auto transcript)
                                                     │
                                                     ▼
-                         join with the speaker's pauses ──► 48 kHz, −16 LUFS ──► WAV / export
+   join with the speaker's pauses ──► match the speaker's intonation ──► 48 kHz, −16 LUFS ──► WAV / export
 ```
+
+**Intonation matching.** Cloned speech, especially Tamil in male voices, often comes out flatter than the speaker: its pitch melody moves about 1 semitone where real speech moves 3–5. VOXAI measures the speaker's own melody range on the voice sample. If the clone is flatter, it widens only the slow phrase melody (rises, falls and stressed words) back toward that range, using PSOLA resynthesis, which keeps the voice's timbre and timing. The small natural wobble of the voice is kept as it is, and clones that are already lively are left untouched.
 
 ## Tech stack
 
@@ -164,6 +166,7 @@ Give `HF_TOKEN` the smallest access that works: read access to `ai4bharat/IndicF
 | `VOXAI_INDIC_STEPS` | `32` | Tamil quality/speed: 32 = best, 16 ≈ 2× faster |
 | `VOXAI_PACE` | `0.9` | Tamil reading pace relative to the speaker's own rate |
 | `VOXAI_ISOLATE` | `auto` | Voice isolation: `auto` (when the sample has background), `on`, `off` |
+| `VOXAI_INTONATION` | `on` | Match the speaker's intonation range (`off` to disable) |
 | `VOXAI_THREADS` | `0` | CPU threads for PyTorch (0 = automatic) |
 | `PRELOAD_INDIC` | `1` | Load the Tamil model at startup |
 | `VOXAI_LOG_REPO` | — | Private dataset for the activity log (off when empty) |

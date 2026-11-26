@@ -20,6 +20,7 @@ import asr
 import voiceprep as vp
 import activity
 import guard
+import intonation
 from urllib.parse import quote as _quote
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
@@ -90,7 +91,10 @@ MAX_TEXT_CHARS  = 500
 INDIC_PACE      = float(os.environ.get("VOXAI_PACE", "0.9"))
 INDIC_RATE_MIN, INDIC_RATE_MAX = 11.0, 17.5   # Tamil letters+signs per second of speech
 PERFORM_MAX_S   = 60      # voice-to-voice: longest performance accepted
-PROMPT_TAG      = "|prompt-v2"   # transcript cache tag (v2: made from the isolated voice)
+PROMPT_TAG      = "|prompt-v3"   # transcript cache tag (v3: prompt window chosen for liveliness too)
+# Intonation matching (see intonation.py): a clone flatter than its speaker gets the
+# speaker's melody range back.  "off" switches it off.
+INTONATION      = os.environ.get("VOXAI_INTONATION", "on").strip().lower() != "off"
 
 # One synthesis at a time: models are not thread-safe and the free CPU is tiny.
 SYNTH_LOCK = threading.Lock()
@@ -134,7 +138,7 @@ app = FastAPI(title="VOXAI")
 app.add_middleware(CORSMiddleware, allow_origins=guard.allowed_origins(), allow_methods=["GET", "POST", "DELETE"],
                    allow_headers=["*"],
                    expose_headers=["X-Quality-Warning", "X-Spoken-Text", "X-Ref-Text", "X-Ref-Replaced",
-                                   "X-Voice-Prep", "X-Rhythm"])
+                                   "X-Voice-Prep", "X-Rhythm", "X-Intonation"])
 
 @app.middleware("http")
 async def _limit_body(request: Request, call_next):
@@ -943,8 +947,10 @@ def _voice_source(speaker_wav: str, key: str = None) -> tuple:
             s, note = vp.clean_voice(s, INDIC_SR)
             sf.write(path, s, INDIC_SR)
         rhythm = vp.speaker_rhythm(s, INDIC_SR)
-        logger.info("Voice sample: %s; speaker's pauses %.2fs short / %.2fs long (%d found)",
-                    note, rhythm["comma"], rhythm["sentence"], rhythm["pauses"])
+        rhythm["melody"] = intonation.melody_sd(s, INDIC_SR)    # the speaker's own intonation range
+        logger.info("Voice sample: %s; speaker's pauses %.2fs short / %.2fs long (%d found); melody %s st",
+                    note, rhythm["comma"], rhythm["sentence"], rhythm["pauses"],
+                    f"{rhythm['melody']:.1f}" if rhythm["melody"] else "?")
         res = (path, rhythm, note)
         _voice_cache[key] = res
         return res
@@ -1419,6 +1425,16 @@ def clone(
                                         voice_key=voice_key, rhythm=rhythm)
                     engine = "chatterbox"
 
+                # Give a flat clone the speaker's own melody range back (intonation.py).
+                tone_note = "intonation: off"
+                if INTONATION:
+                    w_np = wav.squeeze(0).cpu().numpy().astype(np.float32)
+                    w2, tone_note = intonation.match(w_np, src_sr, (rhythm or {}).get("melody"))
+                    if w2 is not w_np:
+                        if engine == "chatterbox":     # re-apply the AI watermark after the change
+                            w2 = np.asarray(cb_model.watermarker.apply_watermark(w2, sample_rate=src_sr), np.float32)
+                        wav = torch.from_numpy(np.ascontiguousarray(w2)).unsqueeze(0)
+
                 raw_wav_path = str(out_path) + "_raw.wav"
                 torchaudio.save(raw_wav_path, wav.cpu(), src_sr)
                 processed, out_sr = professional_chain(raw_wav_path, src_sr, ref_info, engine=engine)
@@ -1436,10 +1452,11 @@ def clone(
                         {"language": language, "text": text, "spoken_text": spoken_text or text,
                          "voice": f"profile:{profile_name}" if profile_name else "upload",
                          "seconds": round(len(processed) / out_sr, 2), "speed": speed,
-                         "consent": consent_ok})
+                         "consent": consent_ok, "intonation": tone_note})
 
         headers = {"X-Voice-Prep": _quote(prep_note),
-                   "X-Rhythm": f"short={rhythm['comma']:.2f};long={rhythm['sentence']:.2f}"}
+                   "X-Rhythm": f"short={rhythm['comma']:.2f};long={rhythm['sentence']:.2f}",
+                   "X-Intonation": _quote(tone_note)}
         dur = ref_info.get("duration", 99)
         if not is_indic and isinstance(dur, (int, float)) and dur < WARN_DURATION_S:
             headers["X-Quality-Warning"] = f"Reference {dur:.1f}s -- use 15-30s for best results"

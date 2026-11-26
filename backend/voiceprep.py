@@ -149,12 +149,29 @@ def clean_voice(s: np.ndarray, sr: int) -> tuple:
 
 # ── 2. cleanest stretch ─────────────────────────────────────────────────────
 
+LIVELY_WEIGHT = 1.2      # score per semitone of phrase melody (see pick_window)
+
+
+def _melody_sd_in(track, a_s: float, b_s: float):
+    if track is None:
+        return None
+    t, slow = track
+    i, j = np.searchsorted(t, a_s), np.searchsorted(t, b_s)
+    return float(np.std(slow[i:j])) if j - i >= 30 else None
+
+
 def pick_window(s: np.ndarray, sr: int, max_s: float, min_s: float = 4.0) -> tuple:
-    """Cleanest stretch of at most max_s seconds, starting and ending inside pauses
-    (prefers longer stretches: more of the voice; avoids clipping and background).
-    Returns (audio, start_s, end_s)."""
+    """Best stretch of at most max_s seconds, starting and ending inside pauses:
+    clean (no clipping or background), long (more of the voice) and lively -- the
+    clone copies the delivery of its prompt, so a stretch where the speaker's melody
+    moves gives a livelier clone than a flat one.  Returns (audio, start_s, end_s)."""
     if len(s) <= max_s * sr:
         return s, 0.0, len(s) / sr
+    try:
+        import intonation
+        track = intonation.melody_track(s, sr)
+    except Exception:
+        track = None
     m, hop = speech_mask(s, sr)
     db, _ = frame_db(s, sr)
     cuts = [0]
@@ -175,6 +192,9 @@ def pick_window(s: np.ndarray, sr: int, max_s: float, min_s: float = 4.0) -> tup
             bg = float(np.percentile(seg_db, 10) - np.percentile(seg_db, 95)) if len(seg_db) > 10 else -60
             clip = float(np.mean(np.abs(s[a:b]) > 0.98))
             score = d - 0.15 * max(0.0, bg + 45) - 500 * clip
+            mel = _melody_sd_in(track, a / sr, b / sr)
+            if mel is not None:
+                score += LIVELY_WEIGHT * min(mel, 4.5)
             if score > best_score:
                 best, best_score = (a, b), score
     if best is None:                       # no pauses at all: first max_s seconds
