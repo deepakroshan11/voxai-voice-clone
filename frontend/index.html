@@ -2135,6 +2135,69 @@
       display: block
     }
 
+    /* PERMISSION TICK BOX (above the clone button) */
+    .consent {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 0 0 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.5;
+      letter-spacing: .5px;
+      color: var(--muted2);
+      cursor: pointer;
+      user-select: none
+    }
+
+    .consent input {
+      appearance: none;
+      -webkit-appearance: none;
+      flex: none;
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      border: 2px solid var(--ink);
+      background: var(--paper);
+      box-shadow: 2px 2px 0 var(--ink2);
+      display: grid;
+      place-items: center;
+      cursor: pointer
+    }
+
+    .consent input:checked {
+      background: var(--ink)
+    }
+
+    .consent input:checked::after {
+      content: '';
+      width: 5px;
+      height: 9px;
+      border: solid var(--cream);
+      border-width: 0 2px 2px 0;
+      transform: translateY(-1px) rotate(45deg)
+    }
+
+    .consent input:focus-visible {
+      outline: 2px solid var(--red);
+      outline-offset: 2px
+    }
+
+    .consent.nudge {
+      color: var(--red);
+      animation: consentNudge .4s ease
+    }
+
+    @keyframes consentNudge {
+      25% { transform: translateX(-5px) }
+      50% { transform: translateX(5px) }
+      75% { transform: translateX(-3px) }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .consent.nudge { animation: none }
+    }
+
     /* OUTPUT */
     .out-card {
       display: none;
@@ -2845,6 +2908,10 @@
     <!-- STEP 4 -->
     <div class="step">
       <div class="clone-wrap">
+        <label class="consent" id="consent-row">
+          <input type="checkbox" id="consent">
+          <span>I own this voice or have the speaker's permission to clone it.</span>
+        </label>
         <button class="clone-btn" id="cb" type="button">
           <div class="btn-inner">
             <svg id="ci" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -3225,18 +3292,22 @@
         const btn = ev.currentTarget, fd = new FormData();
         if (S.selProf) fd.append('profile_name', S.selProf);
         else if (S.file || S.rec) {
-          const src = S.file || S.rec, nc = S.file ? !/\.wav$/i.test(S.file.name) : true;
+          const src = S.file || S.rec, nc = S.file ? (!/\.wav$/i.test(S.file.name) || S.file.size > 8e6) : true;
           fd.append('voice_sample', new File([nc ? await blobToWav(src) : src], 'voice.wav', { type: 'audio/wav' }));
         } else { toast('ADD VOICE SOURCE FIRST', 'er'); return }
         btn.disabled = true; btn.textContent = 'LISTENING… (~1 MIN)';
+        const ticket = randId(); fd.append('ticket', ticket);
+        const unwatch = watchQueue(ticket, q => {
+          btn.textContent = q.state === 'waiting' && q.ahead > 0 ? `WAITING — ${q.ahead} AHEAD IN LINE` : 'LISTENING… (~1 MIN)';
+        });
         try {
-          const r = await fetch(`${API}/transcribe`, { method: 'POST', body: fd });
+          const r = await api('/transcribe', { method: 'POST', body: fd });
           const j = await r.json();
           if (!r.ok) throw new Error(j.detail || 'FAILED');
           setRt(j.text);
           toast('DETECTED — CHECK THE WORDS', 'ok');
         } catch (e) { toast(String(e.message).toUpperCase(), 'er') }
-        finally { btn.disabled = false; btn.textContent = 'AUTO-DETECT WORDS IN MY SAMPLE' }
+        finally { unwatch(); btn.disabled = false; btn.textContent = 'AUTO-DETECT WORDS IN MY SAMPLE' }
       });
     });
 
@@ -3275,6 +3346,30 @@
        APP STATE
        ═══════════════════════════════════ */
     const API = '';
+    /* A random id for this browser, sent with every request (X-Client-Id): on the public
+       site the server keeps each browser's saved voices private to it. */
+    const randId = () => crypto.randomUUID ? crypto.randomUUID()
+      : Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
+    const CID = (() => {
+      try {
+        let v = localStorage.getItem('voxai.cid');
+        if (!/^[A-Za-z0-9-]{16,64}$/.test(v || '')) { v = randId(); localStorage.setItem('voxai.cid', v); }
+        return v;
+      } catch { return randId(); }
+    })();
+    const api = (path, opt = {}) => fetch(`${API}${path}`, { ...opt, headers: { ...(opt.headers || {}), 'X-Client-Id': CID } });
+    /* While a job waits its turn, ask the server for its place in line every 2 s. */
+    function watchQueue(ticket, show) {
+      let stop = false;
+      (async () => {
+        while (!stop) {
+          await new Promise(r => setTimeout(r, 2000));
+          if (stop) break;
+          try { const q = await (await api(`/queue/${ticket}`)).json(); if (!stop) show(q); } catch { }
+        }
+      })();
+      return () => { stop = true; };
+    }
     const S = { file: null, rec: null, recording: false, playing: false, blob: null, mr: null, ac: null, an: null, af: null, chunks: [], profiles: [], selProf: null, oac: null, recSec: 0, recInt: null };
     const $ = id => document.getElementById(id);
     const D = {
@@ -3807,25 +3902,39 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCoach(); });
 
     /* CLONE */
+    $('consent').addEventListener('change', () => $('consent-row').classList.remove('nudge'));
     D.cb.addEventListener('click', async () => {
       const text = D.ti.value.trim();
       if (!text) { toast('ENTER TEXT FIRST', 'er'); return }
       if (!S.file && !S.rec && !S.selProf) { toast('ADD VOICE SOURCE FIRST', 'er'); return }
+      if (!$('consent').checked) {
+        toast('PLEASE CONFIRM YOU HAVE PERMISSION TO USE THIS VOICE', 'er');
+        $('consent-row').classList.remove('nudge'); void $('consent-row').offsetWidth; $('consent-row').classList.add('nudge');
+        return;
+      }
       const lang = curLang(), refText = $('rt').value.trim();
       setLoad(true);
       const fd = new FormData(); fd.append('text', text); fd.append('language', lang); fd.append('speed', 1.0);
+      fd.append('consent', '1');
       if (INDIC[lang] && refText) fd.append('ref_text', refText);
       if (INDIC[lang]) fd.append('style', $('tstyle').value);
+      const ticket = randId(); fd.append('ticket', ticket);
+      let unwatch = () => { }, timer = 0;
       try {
         if (S.selProf) { fd.append('profile_name', S.selProf); }
         else {
-          const src = S.file || S.rec; const nc = S.file ? !/\.wav$/i.test(S.file.name) : true;
+          const src = S.file || S.rec; const nc = S.file ? (!/\.wav$/i.test(S.file.name) || S.file.size > 8e6) : true;
           let wav; if (nc) { toast('CONVERTING_', ''); wav = await blobToWav(src); } else wav = src;
           fd.append('voice_sample', new File([wav], 'voice.wav', { type: 'audio/wav' }));
         }
         let p = 0;
-        const timer = setInterval(() => { p = Math.min(p + Math.random() * 7, 90); D.pf.style.width = p + '%' }, 400);
-        const r = await fetch(`${API}/clone`, { method: 'POST', body: fd }); clearInterval(timer);
+        timer = setInterval(() => { p = Math.min(p + Math.random() * 7, 90); D.pf.style.width = p + '%' }, 400);
+        unwatch = watchQueue(ticket, q => {
+          D.ct.textContent = q.state === 'waiting' && q.ahead > 0 ? `IN LINE — ${q.ahead} AHEAD_` : 'SYNTHESISING_';
+          D.plbl.textContent = q.state === 'waiting' && q.ahead > 0
+            ? `OTHERS ARE CLONING — YOU ARE #${q.ahead + 1} IN LINE_` : 'SYNTHESISING_';
+        });
+        const r = await api('/clone', { method: 'POST', body: fd }); clearInterval(timer); unwatch();
         if (!r.ok) { const e = await r.json().catch(() => ({ detail: 'FAILED' })); throw new Error(e.detail) }
         D.pf.style.width = '100%';
         const spoken = r.headers.get('X-Spoken-Text'), refUsed = r.headers.get('X-Ref-Text');
@@ -3840,7 +3949,7 @@
         showResult(await r.blob());
         toast('CLONE COMPLETE!', 'ok');
       } catch (e) { toast(String(e.message).toUpperCase(), 'er') }
-      finally { setLoad(false) }
+      finally { unwatch(); clearInterval(timer); D.plbl.textContent = 'SYNTHESISING_'; setLoad(false) }
     });
 
     function setLoad(on) {
@@ -3860,7 +3969,7 @@
     /* PROFILES */
     async function loadProfs() {
       try {
-        const r = await fetch(`${API}/profiles`); const d = await r.json(); S.profiles = d.profiles || [];
+        const r = await api('/profiles'); const d = await r.json(); S.profiles = d.profiles || [];
         S.profDetails = {}; (d.details || []).forEach(x => { S.profDetails[x.name] = x });
       }
       catch { S.profiles = []; S.profDetails = {} } renderProfs();
@@ -3899,7 +4008,7 @@
       $('pp-use').textContent = S.selProf === p ? 'Stop using this voice' : 'Use this voice';
       $('pp').classList.add('on');
       try {
-        const r = await fetch(`${API}/profiles/${encodeURIComponent(p)}/audio`, { cache: 'no-store' });
+        const r = await api(`/profiles/${encodeURIComponent(p)}/audio`, { cache: 'no-store' });
         if (!r.ok) throw new Error('VOICE AUDIO NOT FOUND');
         const b = await r.blob();
         if (ppName === p && $('pp').classList.contains('on')) PPW.load(b);
@@ -3938,20 +4047,20 @@
       const src = S.file || S.rec; if (!src) { toast('LOAD AUDIO FIRST', 'er'); return }
       try {
         toast('SAVING_', '');
-        const nc = S.file ? !/\.wav$/i.test(S.file.name) : true;
+        const nc = S.file ? (!/\.wav$/i.test(S.file.name) || S.file.size > 8e6) : true;
         const wav = nc ? await blobToWav(src) : src;
         const fd = new FormData(); fd.append('profile_name', name);
         fd.append('voice_sample', new File([wav], 'voice.wav', { type: 'audio/wav' }));
         fd.append('language', curLang());
         const rt = $('rt').value.trim(); if (INDIC[curLang()] && rt) fd.append('ref_text', rt);
-        const r = await fetch(`${API}/save-profile`, { method: 'POST', body: fd });
+        const r = await api('/save-profile', { method: 'POST', body: fd });
         if (!r.ok) { const e = await r.json().catch(() => ({ detail: 'SAVE FAILED' })); throw new Error(e.detail) }
         toast(`"${name.toUpperCase()}" SAVED!`, 'ok'); D.pn.value = ''; await loadProfs();
       } catch (e) { toast(String(e.message || 'SAVE FAILED').toUpperCase(), 'er') }
     });
     async function delProf(name) {
       try {
-        await fetch(`${API}/profiles/${name}`, { method: 'DELETE' });
+        await api(`/profiles/${encodeURIComponent(name)}`, { method: 'DELETE' });
         if (S.selProf === name) S.selProf = null;
         toast(`"${name.toUpperCase()}" DELETED`, ''); await loadProfs();
       } catch { toast('DELETE FAILED', 'er') }

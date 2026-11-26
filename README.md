@@ -145,6 +145,16 @@ uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
 The free CPU tier runs both languages; a GPU tier makes Tamil generation much faster.
 
+On a Space, VOXAI switches on its public-site protections automatically:
+
+- **Private voices.** Each browser's saved profiles are stored separately, so visitors never see, play, use or delete each other's voices.
+- **Safe uploads.** Only real audio files are accepted (WAV, MP3, M4A, OGG, FLAC, WebM, up to 40 MB), and ffmpeg reads them with a fixed format and no access to other files or the network.
+- **Fair use.** One job runs at a time, and the page shows each visitor their place in line. Each visitor is limited to 5 clones per 10 minutes.
+- **Consent.** Each clone needs the "I own this voice or have permission" box ticked.
+- **Locked-down API.** Other websites cannot call the API from their pages.
+
+Give `HF_TOKEN` the smallest access that works: read access to `ai4bharat/IndicF5`, plus write access to the activity-log dataset if you use one.
+
 ## Configuration
 
 | Variable | Default | Purpose |
@@ -157,6 +167,14 @@ The free CPU tier runs both languages; a GPU tier makes Tamil generation much fa
 | `VOXAI_THREADS` | `0` | CPU threads for PyTorch (0 = automatic) |
 | `PRELOAD_INDIC` | `1` | Load the Tamil model at startup |
 | `VOXAI_LOG_REPO` | — | Private dataset for the activity log (off when empty) |
+| `VOXAI_PRIVATE_PROFILES` | on for Spaces | Keep each browser's saved voices separate |
+| `VOXAI_REQUIRE_CONSENT` | on for Spaces | Require `consent=1` on `/clone` and `/perform` |
+| `VOXAI_RATE_LIMIT` | `5/600` on Spaces, off locally | Clones per visitor per time window (seconds); `0/1` turns it off |
+| `VOXAI_MAX_JOBS` | `1` | Jobs that run at the same time |
+| `VOXAI_MAX_WAITING` | `8` | Jobs that may wait in line before new ones are turned away |
+| `VOXAI_MAX_UPLOAD_MB` | `40` | Largest accepted upload |
+| `VOXAI_MAX_PROFILES` | `12` | Saved voices per browser (private profiles only) |
+| `VOXAI_ORIGINS` | the Space URL + localhost | Comma-separated websites allowed to call the API from a browser |
 | `PORT` | `8000` | Port when started with `python backend/main.py` |
 
 ## API
@@ -173,7 +191,10 @@ Interactive documentation is served at `/docs`.
 | `GET` | `/profiles` | List saved profiles |
 | `GET` | `/profiles/{name}/audio` | The saved voice sample of a profile |
 | `DELETE` | `/profiles/{name}` | Delete a profile |
+| `GET` | `/queue/{ticket}` | Place in line of a job sent with that `ticket` |
 | `GET` | `/health` | Status of the models, ffmpeg and available formats |
+
+With private profiles on (the default on Spaces), the profile endpoints, and `profile_name` in other requests, need an `X-Client-Id` header: a random id of 16–64 letters, digits or dashes that identifies the caller's own profiles.
 
 `POST /clone` (multipart form):
 
@@ -186,6 +207,8 @@ Interactive documentation is served at `/docs`.
 | `style` | `spoken` | Tamil only: `spoken` (everyday) or `formal` (as written) |
 | `ref_text` | — | Tamil only: transcript of the sample (detected automatically when empty) |
 | `speed` | `1.0` | 0.5–2.0 |
+| `consent` | — | `1` confirms you own the voice or have permission (required on Spaces) |
+| `ticket` | — | Any id of 8–64 letters, digits or dashes; poll `GET /queue/{ticket}` for the place in line |
 
 Example:
 
@@ -193,6 +216,7 @@ Example:
 curl -X POST http://localhost:8000/clone \
   -F "text=Hello! This is my cloned voice [chuckle]." \
   -F "language=en" \
+  -F "consent=1" \
   -F "voice_sample=@my_voice.wav" \
   -o cloned.wav
 ```
@@ -219,7 +243,9 @@ Measured on the Hugging Face free CPU tier (2 vCPU, 16 GB RAM):
 | Problem | Fix |
 |---|---|
 | Tamil is unavailable / `gated repo` error | Accept the IndicF5 terms and set `HF_TOKEN` |
-| `Cannot convert '.mp3'` | Install ffmpeg and add it to `PATH` |
+| `Could not read this MP3 file` | Install ffmpeg and add it to `PATH` |
+| `Unsupported file` | Upload WAV, MP3, M4A, OGG, FLAC or WebM audio |
+| `Limit reached` / `busy right now` | The public site's fair-use limits; wait a few minutes |
 | Server stops right after "Download complete" | Not enough free RAM; close other applications |
 | `ModuleNotFoundError: backend` | Start uvicorn from the repository root |
 | Words missing in Tamil | Leave the transcript empty so it is detected from the sample |
@@ -228,6 +254,7 @@ Measured on the Hugging Face free CPU tier (2 vCPU, 16 GB RAM):
 ## Data and privacy
 
 - Running locally, nothing leaves your machine except the one-time model downloads.
+- On a Space, saved voices belong to the browser that saved them and are not shown to anyone else. Space storage is temporary, so they are cleared when the Space restarts.
 - When `VOXAI_LOG_REPO` is set, each job's voice sample, result, text, time and an anonymous user id (a salted hash, never the IP address) are stored in that **private** Hugging Face dataset, for quality review. If you host VOXAI for others, tell your users about this in your privacy policy.
 
 ## Responsible use

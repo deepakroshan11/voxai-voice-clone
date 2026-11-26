@@ -9,7 +9,7 @@ from scipy.io import wavfile
 from scipy.fft import rfft, rfftfreq, irfft
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.background import BackgroundTask
 import uvicorn
@@ -19,6 +19,7 @@ from tamil_text import prepare_for_tts
 import asr
 import voiceprep as vp
 import activity
+import guard
 from urllib.parse import quote as _quote
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
@@ -103,17 +104,46 @@ def _safe_profile(name: str) -> str:
         raise HTTPException(400, "Profile name may only use letters, digits, '-' and '_' (max 40)")
     return name
 
-def _profile_meta(name: str) -> dict:
-    p = PROFILE_DIR / f"{name}.json"
+def _profile_meta(p) -> dict:
+    """Metadata of a profile, given the path of its .json (None -> {})."""
     try:
-        return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+        return json.loads(p.read_text(encoding="utf-8")) if p and p.exists() else {}
     except Exception:
         return {}
 
-app = FastAPI(title="VOXAI v8 -- Definitive Fix")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+def _profile_dir(request: Request) -> Path:
+    """Where this visitor's profiles live: their own folder on the public site
+    (guard.PRIVATE_PROFILES), the shared folder for a local single-user run."""
+    if not guard.PRIVATE_PROFILES:
+        return PROFILE_DIR
+    d = PROFILE_DIR / guard.owner_id(request)
+    d.mkdir(exist_ok=True)
+    return d
+
+def _profile_paths(request: Request, name: str, must_exist: bool = True) -> tuple:
+    """(wav, json, cache-key prefix) for one of this visitor's profiles."""
+    name = _safe_profile(name)
+    d = _profile_dir(request)
+    wav, meta = d / f"{name}.wav", d / f"{name}.json"
+    if must_exist and not wav.exists():
+        raise HTTPException(404, f"Profile '{name}' not found")
+    key = f"profile:{name}" if d == PROFILE_DIR else f"profile:{d.name}/{name}"
+    return wav, meta, key
+
+app = FastAPI(title="VOXAI")
+app.add_middleware(CORSMiddleware, allow_origins=guard.allowed_origins(), allow_methods=["GET", "POST", "DELETE"],
+                   allow_headers=["*"],
                    expose_headers=["X-Quality-Warning", "X-Spoken-Text", "X-Ref-Text", "X-Ref-Replaced",
                                    "X-Voice-Prep", "X-Rhythm"])
+
+@app.middleware("http")
+async def _limit_body(request: Request, call_next):
+    """Refuse oversized uploads before they are read into memory or onto disk."""
+    cl = request.headers.get("content-length", "")
+    if cl.isdigit() and int(cl) > guard.MAX_UPLOAD_BYTES + 2 * 1024 * 1024:
+        return JSONResponse({"detail": f"File too large (max {guard.MAX_UPLOAD_MB:g} MB) -- use a shorter clip"},
+                            status_code=413)
+    return await call_next(request)
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
@@ -245,14 +275,16 @@ def _ffmpeg_bin():
     return None
 
 FFMPEG = _ffmpeg_bin()
-_NEEDS_FFMPEG = {".webm", ".mp3", ".m4a", ".aac", ".opus", ".wma", ".amr"}
 
-def _ffmpeg_convert(src: str, dst: str) -> bool:
+def _ffmpeg_convert(src: str, dst: str, fmt: str) -> bool:
+    """Uploaded audio -> mono 16-bit WAV.  `fmt` (from guard.audio_format) fixes the
+    demuxer, so ffmpeg never guesses the format or follows playlists/other files."""
     if not FFMPEG:
         return False
     try:
         r = subprocess.run(
-            [FFMPEG, "-y", "-i", src, "-ac", "1", "-sample_fmt", "s16", "-f", "wav", dst],
+            [FFMPEG, "-y", *guard.ffmpeg_input_args(fmt), "-i", src, "-vn", "-map_metadata", "-1",
+             "-ac", "1", "-sample_fmt", "s16", "-f", "wav", dst],
             stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=120
         )
         return r.returncode == 0 and Path(dst).exists()
@@ -342,27 +374,37 @@ def enhance_reference(path: str, crop: bool = True) -> dict:
         logger.warning("Reference enhance: %s", e)
         return {"duration": 0, "ok": False, "rms": 0.035, "hf_lf_ratio": 0.11}
 
-def prepare_audio(file_bytes: bytes, filename: str, crop: bool = True) -> tuple:
-    ext = Path(filename).suffix.lower() if filename else ".bin"
-    ext_map = {".opus": ".ogg", ".webm": ".webm", ".mp3": ".mp3", ".m4a": ".m4a",
-               ".aac": ".aac", ".ogg": ".ogg", ".wav": ".wav", ".flac": ".flac"}
-    ext = ext_map.get(ext, ext or ".bin")
-    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
-        tmp.write(file_bytes); raw = tmp.name
-    clean = raw + "_ref.wav"
+def _decode_upload(data: bytes, dst: str):
+    """Write an uploaded file to disk and convert it to WAV at `dst`; only real audio
+    containers are accepted (see guard.audio_format).  Raises RuntimeError."""
+    fmt = guard.audio_format(data)
+    if not fmt:
+        raise RuntimeError("Unsupported file -- upload WAV, MP3, M4A, OGG, FLAC or WebM audio")
+    with tempfile.NamedTemporaryFile(delete=False, suffix="." + fmt) as tmp:
+        tmp.write(data); raw = tmp.name
     try:
-        ok = _ffmpeg_convert(raw, clean) or \
-             (ext not in _NEEDS_FFMPEG and _torchaudio_convert(raw, clean))
+        ok = _ffmpeg_convert(raw, dst, fmt) or \
+             (fmt in ("wav", "flac", "ogg") and _torchaudio_convert(raw, dst))
         if not ok:
-            raise RuntimeError(f"Cannot convert '{ext}'. Install ffmpeg.")
+            raise RuntimeError(f"Could not read this {fmt.upper()} file -- try WAV or MP3")
+    finally:
+        try: os.unlink(raw)
+        except OSError: pass
+
+
+def prepare_audio(file_bytes: bytes, filename: str, crop: bool = True) -> tuple:
+    clean = tempfile.NamedTemporaryFile(delete=False, suffix="_ref.wav").name
+    try:
+        _decode_upload(file_bytes, clean)
         info = enhance_reference(clean, crop=crop)
         if info["duration"] < MIN_DURATION_S:
             raise RuntimeError(
                 f"Too short ({info['duration']:.1f}s, min {MIN_DURATION_S}s). "
                 "Record 15-30 seconds for best quality.")
-    finally:
-        try: os.unlink(raw)
+    except Exception:
+        try: os.unlink(clean)
         except OSError: pass
+        raise
     return clean, info
 
 
@@ -950,13 +992,13 @@ def _indic_reference(speaker_wav: str, key: str = None) -> tuple:
     return res
 
 
-def _choose_transcript(typed: str, ref_path: str, key: str, profile_name: str,
+def _choose_transcript(typed: str, ref_path: str, key: str, profile_json,
                        clipped: bool) -> tuple:
     """A transcript that doesn't match the clip is THE cause of swallowed words
     (F5 'spends' the first new words inside the sample's time slot, which is then
     cut away).  So a typed transcript is only used when it agrees with what the
     recogniser hears; otherwise the detected words are used.  Returns (text, replaced)."""
-    _, heard = _auto_transcript(ref_path, (key or ref_path) + PROMPT_TAG, profile_name)
+    _, heard = _auto_transcript(ref_path, (key or ref_path) + PROMPT_TAG, profile_json)
     typed = (typed or "").strip()
     if not typed:
         return heard, False
@@ -1134,10 +1176,10 @@ def _apply_speed(processed: np.ndarray, out_sr: int, speed: float) -> np.ndarray
     return processed
 
 
-def _auto_transcript(speaker_wav: str, voice_key: str = None, profile_name: str = None) -> tuple:
+def _auto_transcript(speaker_wav: str, voice_key: str = None, profile_json=None) -> tuple:
     """Transcribe the voice prompt (see asr.py).  For profiles the result is stored
     in the profile json, so it survives restarts and runs only once per voice."""
-    meta = _profile_meta(profile_name) if profile_name else {}
+    meta = _profile_meta(profile_json)
     saved = meta.get("auto_ref") or {}
     if voice_key and saved.get("key") == voice_key and saved.get("text"):
         return saved.get("lang", "ta"), saved["text"]
@@ -1149,39 +1191,40 @@ def _auto_transcript(speaker_wav: str, voice_key: str = None, profile_name: str 
                                  "type its exact words in the transcript box")
     if not txt.strip():
         raise HTTPException(400, "No speech found in the voice sample")
-    if profile_name and voice_key:
+    if profile_json and voice_key and Path(profile_json).parent.exists():
         meta["auto_ref"] = {"key": voice_key, "lang": lang, "text": txt}
-        (PROFILE_DIR / f"{profile_name}.json").write_text(
-            json.dumps(meta, ensure_ascii=False), encoding="utf-8")
+        Path(profile_json).write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
     return lang, txt
 
 
 @app.post("/transcribe")
-def transcribe_sample(voice_sample: UploadFile = File(None), profile_name: str = Form(None)):
+def transcribe_sample(request: Request, voice_sample: UploadFile = File(None), profile_name: str = Form(None),
+                      ticket: str = Form(None)):
     """What is said in the voice sample (for the transcript box)."""
     tmp = None
+    pjson = None
     try:
         if profile_name:
-            profile_name = _safe_profile(profile_name)
-            path = PROFILE_DIR / f"{profile_name}.wav"
-            if not path.exists():
-                raise HTTPException(404, f"Profile '{profile_name}' not found")
-            key = f"profile:{profile_name}:{path.stat().st_mtime_ns}"
-            path = str(path)
+            wav, pjson, kp = _profile_paths(request, profile_name)
+            key = f"{kp}:{wav.stat().st_mtime_ns}"
+            path = str(wav)
         elif voice_sample:
             import hashlib
-            raw = voice_sample.file.read()
+            raw = guard.read_upload(voice_sample)
             key = "upload:" + hashlib.sha1(raw).hexdigest()
-            try:
-                path, _ = prepare_audio(raw, voice_sample.filename or "upload.wav", crop=False)
-            except RuntimeError as e:
-                raise HTTPException(400, str(e))
-            tmp = path
+            path = None
         else:
             raise HTTPException(400, "Provide a voice sample or select a saved profile")
-        # Same prepared prompt the cloner uses, so the words shown match it exactly.
-        ref_path, _, _ = _indic_reference(path, key)
-        lang, txt = _auto_transcript(ref_path, key + PROMPT_TAG, profile_name)
+        with guard.JOBS.slot(ticket):
+            if path is None:
+                try:
+                    path, _ = prepare_audio(raw, voice_sample.filename or "upload.wav", crop=False)
+                except RuntimeError as e:
+                    raise HTTPException(400, str(e))
+                tmp = path
+            # Same prepared prompt the cloner uses, so the words shown match it exactly.
+            ref_path, _, _ = _indic_reference(path, key)
+            lang, txt = _auto_transcript(ref_path, key + PROMPT_TAG, pjson)
         return {"language": lang, "text": txt}
     finally:
         if tmp:
@@ -1189,29 +1232,31 @@ def transcribe_sample(voice_sample: UploadFile = File(None), profile_name: str =
             except OSError: pass
 
 
-def _resolve_voice(voice_sample, profile_name, crop: bool) -> tuple:
-    """The voice to clone: a saved profile or an uploaded sample.
-    Returns (speaker_wav, voice_key, ref_info, temp_file_or_None, profile_meta)."""
+def _resolve_voice(request: Request, voice_sample, profile_name, crop: bool) -> tuple:
+    """The voice to clone: one of this visitor's saved profiles or an uploaded sample.
+    Returns (speaker_wav, voice_key, ref_info, temp_file_or_None, profile_meta, profile_json)."""
     if profile_name:
-        profile_name = _safe_profile(profile_name)
-        sp_path = PROFILE_DIR / f"{profile_name}.wav"
-        if not sp_path.exists():
-            raise HTTPException(404, f"Profile '{profile_name}' not found")
-        meta = _profile_meta(profile_name)
+        sp_path, pjson, kp = _profile_paths(request, profile_name)
+        meta = _profile_meta(pjson)
         ref_info = analyse_reference(str(sp_path))
         ref_info["duration"] = meta.get("duration", 99)
-        return (str(sp_path), f"profile:{profile_name}:{sp_path.stat().st_mtime_ns}",
-                ref_info, None, meta)
+        return (str(sp_path), f"{kp}:{sp_path.stat().st_mtime_ns}", ref_info, None, meta, pjson)
     if voice_sample:
         import hashlib
-        raw = voice_sample.file.read()
+        raw = guard.read_upload(voice_sample)
         try:
             speaker_wav, ref_info = prepare_audio(raw, voice_sample.filename or "upload.wav", crop=crop)
         except RuntimeError as e:
             raise HTTPException(400, str(e))
         return (speaker_wav, "upload:" + hashlib.sha1(raw).hexdigest(), ref_info, speaker_wav,
-                {"_raw": raw, "_fname": voice_sample.filename or "upload.wav"})
+                {"_raw": raw, "_fname": voice_sample.filename or "upload.wav"}, None)
     raise HTTPException(400, "Provide a voice sample or select a saved profile")
+
+
+@app.get("/queue/{ticket}")
+async def queue_status(ticket: str):
+    """Place in line for a job sent with this ticket (the page polls it while waiting)."""
+    return guard.JOBS.status(ticket)
 
 
 @app.post("/perform")
@@ -1220,45 +1265,52 @@ def perform(
     guide_audio:  UploadFile = File(...),     # the user reading the line, any language
     voice_sample: UploadFile = File(None),
     profile_name: str        = Form(None),
+    consent:      str        = Form(None),    # "1": the user has the right to use this voice
+    ticket:       str        = Form(None),
 ):
     """Voice-to-voice: your own reading -- its rhythm, pauses and emphasis -- comes out
     in the cloned voice (see perform_voice).  Takes seconds, not minutes."""
     import librosa
     if cb_model is None:
         raise HTTPException(503, "Model loading -- please wait")
-    tmp_speaker = guide_raw = guide_wav = None
+    consent_ok = guard.check_consent(consent)
+    if profile_name:
+        _profile_paths(request, profile_name)          # 404 before waiting in line
+    data = guard.read_upload(guide_audio)
+    user = activity.user_id(request)
+    guard.RATE.check(user)
+    tmp_speaker = guide_wav = None
     out_path = OUTPUT_DIR / f"{uuid.uuid4().hex}.wav"
     try:
-        speaker_wav, voice_key, _, tmp_speaker, vmeta = _resolve_voice(voice_sample, profile_name, crop=True)
-        data = guide_audio.file.read()
-        ext = Path(guide_audio.filename or "guide.wav").suffix.lower() or ".wav"
-        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
-            f.write(data); guide_raw = f.name
-        guide_wav = guide_raw + "_g.wav"
-        if not (_ffmpeg_convert(guide_raw, guide_wav) or
-                (ext not in _NEEDS_FFMPEG and _torchaudio_convert(guide_raw, guide_wav))):
-            raise HTTPException(400, f"Cannot read the recording ('{ext}'). Install ffmpeg.")
-        g, gsr = librosa.load(guide_wav, sr=INDIC_SR, mono=True)
-        g_s = len(g) / gsr
-        if not (0.5 <= g_s <= PERFORM_MAX_S):
-            raise HTTPException(400, f"Record between 0.5 and {PERFORM_MAX_S}s (yours is {g_s:.1f}s)")
-        g, guide_note = vp.clean_voice(g, gsr)          # background out of the performance too
-        g = _tidy_pauses(g, gsr, max_pause=60.0, head=0.1, tail=0.2)   # edges only
-        with SYNTH_LOCK:
-            voice_path, _, prep_note = _voice_source(speaker_wav, voice_key)
-            _prepare_voice(voice_path, DEFAULT_EXAGGERATION, voice_key)
-            logger.info("Performance: %.1fs recording (%s) -> cloned voice", g_s, guide_note)
-            wav = perform_voice(g, gsr)
-            raw_wav_path = str(out_path) + "_raw.wav"
-            torchaudio.save(raw_wav_path, torch.from_numpy(wav).unsqueeze(0), cb_model.sr)
-            processed, out_sr = professional_chain(raw_wav_path, cb_model.sr, {"rms": 0.035, "hf_lf_ratio": 0.11}, engine="chatterbox")
+        with guard.JOBS.slot(ticket):
+            speaker_wav, voice_key, _, tmp_speaker, vmeta, _ = _resolve_voice(request, voice_sample, profile_name, crop=True)
+            guide_wav = tempfile.NamedTemporaryFile(delete=False, suffix="_g.wav").name
+            try:
+                _decode_upload(data, guide_wav)
+            except RuntimeError as e:
+                raise HTTPException(400, str(e))
+            g, gsr = librosa.load(guide_wav, sr=INDIC_SR, mono=True)
+            g_s = len(g) / gsr
+            if not (0.5 <= g_s <= PERFORM_MAX_S):
+                raise HTTPException(400, f"Record between 0.5 and {PERFORM_MAX_S}s (yours is {g_s:.1f}s)")
+            g, guide_note = vp.clean_voice(g, gsr)          # background out of the performance too
+            g = _tidy_pauses(g, gsr, max_pause=60.0, head=0.1, tail=0.2)   # edges only
+            with SYNTH_LOCK:
+                voice_path, _, prep_note = _voice_source(speaker_wav, voice_key)
+                _prepare_voice(voice_path, DEFAULT_EXAGGERATION, voice_key)
+                logger.info("Performance: %.1fs recording (%s) -> cloned voice", g_s, guide_note)
+                wav = perform_voice(g, gsr)
+                raw_wav_path = str(out_path) + "_raw.wav"
+                torchaudio.save(raw_wav_path, torch.from_numpy(wav).unsqueeze(0), cb_model.sr)
+                processed, out_sr = professional_chain(raw_wav_path, cb_model.sr, {"rms": 0.035, "hf_lf_ratio": 0.11}, engine="chatterbox")
         torchaudio.save(str(out_path), torch.from_numpy(processed).unsqueeze(0), out_sr)
         try: os.unlink(raw_wav_path)
         except OSError: pass
         logger.info("Done [perform]: %.1fs @ %dHz", len(processed) / out_sr, out_sr)
-        activity.record("perform", activity.user_id(request), data, guide_audio.filename or "guide.wav",
+        activity.record("perform", user, data, guide_audio.filename or "guide.wav",
                         str(out_path), {"voice": f"profile:{profile_name}" if profile_name else
-                                        f"upload:{vmeta.get('_fname', '')}", "seconds": round(len(processed) / out_sr, 2)})
+                                        f"upload:{vmeta.get('_fname', '')}", "seconds": round(len(processed) / out_sr, 2),
+                                        "consent": consent_ok})
         return FileResponse(str(out_path), media_type="audio/wav", filename="performed_voice.wav",
                             headers={"X-Voice-Prep": _quote(prep_note)})
     except HTTPException:
@@ -1267,7 +1319,7 @@ def perform(
         logger.error("Perform error: %s", e, exc_info=True)
         raise HTTPException(500, f"Voice-to-voice failed: {e}")
     finally:
-        for p in (tmp_speaker, guide_raw, guide_wav):
+        for p in (tmp_speaker, guide_wav):
             if p:
                 try: os.unlink(p)
                 except OSError: pass
@@ -1287,6 +1339,8 @@ def clone(
     profile_name: str        = Form(None),
     ref_text:     str        = Form(None),
     style:        str        = Form("spoken"),   # Tamil: "spoken" (everyday) | "formal" (as typed)
+    consent:      str        = Form(None),       # "1": the user has the right to use this voice
+    ticket:       str        = Form(None),       # optional id to ask GET /queue/{ticket} for the place in line
 ):
     text = (text or "").strip()
     if not text:
@@ -1309,69 +1363,76 @@ def clone(
     cfg_weight   = max(0.0, min(float(cfg_weight), 1.0))
     speed        = max(0.5, min(float(speed), 2.0))
 
+    consent_ok = guard.check_consent(consent)
+    if profile_name:
+        profile_name = _safe_profile(profile_name)
+        _profile_paths(request, profile_name)          # 404 before waiting in line
+    user = activity.user_id(request)
+    guard.RATE.check(user)
+
     tmp_speaker = None
     out_path    = OUTPUT_DIR / f"{uuid.uuid4().hex}.wav"
 
     try:
-        # Indic: keep the whole clip (it is clipped later, together with its transcript).
-        speaker_wav, voice_key, ref_info, tmp_speaker, meta = _resolve_voice(
-            voice_sample, profile_name, crop=not is_indic)
-        if profile_name:
-            profile_name = _safe_profile(profile_name)
-            if is_indic and not (ref_text or "").strip():
+        with guard.JOBS.slot(ticket):
+            # Indic: keep the whole clip (it is clipped later, together with its transcript).
+            speaker_wav, voice_key, ref_info, tmp_speaker, meta, pjson = _resolve_voice(
+                request, voice_sample, profile_name, crop=not is_indic)
+            if profile_name and is_indic and not (ref_text or "").strip():
                 ref_text = meta.get("ref_text", "")
-        if is_indic:
-            dur = ref_info.get("duration", 0)
-            if isinstance(dur, (int, float)) and dur != 99 and not (INDIC_MIN_REF_S <= dur <= INDIC_MAX_REF_S):
-                raise HTTPException(400, f"For {INDIC_LANGS[language]} use a {INDIC_MIN_REF_S}-"
-                                         f"{INDIC_MAX_REF_S}s voice sample (yours is {dur:.1f}s)")
-        # Voice isolated from background music/noise + the speaker's own pause lengths.
-        voice_path, rhythm, prep_note = _voice_source(speaker_wav, voice_key)
-
-        spoken_text = None
-        if is_indic:
-            # Prepared prompt + a transcript verified against it (wrong one = lost words).
-            ref_path, speech_s, clipped = _indic_reference(speaker_wav, voice_key)
-            ref_text, ref_replaced = _choose_transcript(ref_text, ref_path, voice_key,
-                                                        profile_name, clipped)
-            spoken_text = prepare_for_tts(text, spoken=(style or "spoken").lower() != "formal")
-            logger.info("Tamil text (%s): %s", style, spoken_text)
-
-        with SYNTH_LOCK:
             if is_indic:
-                try:
-                    # Tamil speed is applied while generating (natural), not stretched after.
-                    wav = synthesise_indic(spoken_text, ref_path, ref_text, speech_s,
-                                           rhythm, pace=INDIC_PACE * speed)
-                except HTTPException:
-                    raise
-                except Exception as e:
-                    logger.error("IndicF5 error: %s", e, exc_info=True)
-                    raise HTTPException(503, f"{INDIC_LANGS[language]} engine unavailable: {e}")
-                src_sr, engine = INDIC_SR, "indic"
-            else:
-                src_sr = MODEL_SR or CHATTERBOX_SR
-                wav    = synthesise(text, voice_path, exaggeration, cfg_weight, src_sr,
-                                    voice_key=voice_key, rhythm=rhythm)
-                engine = "chatterbox"
+                dur = ref_info.get("duration", 0)
+                if isinstance(dur, (int, float)) and dur != 99 and not (INDIC_MIN_REF_S <= dur <= INDIC_MAX_REF_S):
+                    raise HTTPException(400, f"For {INDIC_LANGS[language]} use a {INDIC_MIN_REF_S}-"
+                                             f"{INDIC_MAX_REF_S}s voice sample (yours is {dur:.1f}s)")
+            # Voice isolated from background music/noise + the speaker's own pause lengths.
+            voice_path, rhythm, prep_note = _voice_source(speaker_wav, voice_key)
 
-            raw_wav_path = str(out_path) + "_raw.wav"
-            torchaudio.save(raw_wav_path, wav.cpu(), src_sr)
-            processed, out_sr = professional_chain(raw_wav_path, src_sr, ref_info, engine=engine)
-            if not is_indic:
-                processed = _apply_speed(processed, out_sr, speed)
+            spoken_text = None
+            if is_indic:
+                # Prepared prompt + a transcript verified against it (wrong one = lost words).
+                ref_path, speech_s, clipped = _indic_reference(speaker_wav, voice_key)
+                ref_text, ref_replaced = _choose_transcript(ref_text, ref_path, voice_key,
+                                                            pjson, clipped)
+                spoken_text = prepare_for_tts(text, spoken=(style or "spoken").lower() != "formal")
+                logger.info("Tamil text (%s): %s", style, spoken_text)
+
+            with SYNTH_LOCK:
+                if is_indic:
+                    try:
+                        # Tamil speed is applied while generating (natural), not stretched after.
+                        wav = synthesise_indic(spoken_text, ref_path, ref_text, speech_s,
+                                               rhythm, pace=INDIC_PACE * speed)
+                    except HTTPException:
+                        raise
+                    except Exception as e:
+                        logger.error("IndicF5 error: %s", e, exc_info=True)
+                        raise HTTPException(503, f"{INDIC_LANGS[language]} engine unavailable: {e}")
+                    src_sr, engine = INDIC_SR, "indic"
+                else:
+                    src_sr = MODEL_SR or CHATTERBOX_SR
+                    wav    = synthesise(text, voice_path, exaggeration, cfg_weight, src_sr,
+                                        voice_key=voice_key, rhythm=rhythm)
+                    engine = "chatterbox"
+
+                raw_wav_path = str(out_path) + "_raw.wav"
+                torchaudio.save(raw_wav_path, wav.cpu(), src_sr)
+                processed, out_sr = professional_chain(raw_wav_path, src_sr, ref_info, engine=engine)
+                if not is_indic:
+                    processed = _apply_speed(processed, out_sr, speed)
 
         torchaudio.save(str(out_path), torch.from_numpy(processed).unsqueeze(0), out_sr)
         try: os.unlink(raw_wav_path)
         except OSError: pass
 
         logger.info("Done [%s/%s]: %.1fs @ %dHz", engine, language, len(processed)/out_sr, out_sr)
-        activity.record("clone", activity.user_id(request),
+        activity.record("clone", user,
                         meta.get("_raw") or speaker_wav,
                         meta.get("_fname") or f"profile-{profile_name}.wav", str(out_path),
                         {"language": language, "text": text, "spoken_text": spoken_text or text,
                          "voice": f"profile:{profile_name}" if profile_name else "upload",
-                         "seconds": round(len(processed) / out_sr, 2), "speed": speed})
+                         "seconds": round(len(processed) / out_sr, 2), "speed": speed,
+                         "consent": consent_ok})
 
         headers = {"X-Voice-Prep": _quote(prep_note),
                    "X-Rhythm": f"short={rhythm['comma']:.2f};long={rhythm['sentence']:.2f}"}
@@ -1450,27 +1511,30 @@ def export_audio(audio: UploadFile = File(...), format: str = Form("mp3")):
 
 @app.post("/save-profile")
 def save_profile(
+    request:      Request,
     profile_name: str        = Form(...),
     voice_sample: UploadFile = File(...),
     ref_text:     str        = Form(None),
     language:     str        = Form("en"),
 ):
-    profile_name = _safe_profile(profile_name)
+    dest, pjson, _ = _profile_paths(request, profile_name, must_exist=False)
+    profile_name = dest.stem
     language     = (language or "en").strip().lower()
     is_indic     = language in INDIC_LANGS
-    raw   = voice_sample.file.read()
+    if guard.PRIVATE_PROFILES and not dest.exists() and len(list(dest.parent.glob("*.wav"))) >= guard.MAX_PROFILES:
+        raise HTTPException(400, f"You can keep up to {guard.MAX_PROFILES} saved voices -- delete one first")
+    raw   = guard.read_upload(voice_sample)
     fname = voice_sample.filename or "upload.wav"
     try:
         # A profile with a transcript must keep its full clip to stay in sync.
         tmp, info = prepare_audio(raw, fname, crop=not (is_indic and (ref_text or "").strip()))
     except RuntimeError as e:
         raise HTTPException(400, str(e))
-    dest = PROFILE_DIR / f"{profile_name}.wav"
     os.replace(tmp, dest)
     meta = {"duration": round(info.get("duration", 0), 2),
             "ref_text": (ref_text or "").strip(),
             "language": language}
-    (PROFILE_DIR / f"{profile_name}.json").write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
+    pjson.write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
     return {
         "status": "saved",
         "profile": profile_name,
@@ -1480,31 +1544,29 @@ def save_profile(
     }
 
 @app.get("/profiles")
-async def list_profiles():
-    names = sorted(f.stem for f in PROFILE_DIR.glob("*.wav"))
+async def list_profiles(request: Request):
+    """This visitor's saved voices (on the public site nobody else's are listed)."""
+    d = _profile_dir(request)
+    names = sorted(f.stem for f in d.glob("*.wav") if PROFILE_RE.match(f.stem))
     details = []
     for n in names:
-        m = _profile_meta(n)
+        m = _profile_meta(d / f"{n}.json")
         details.append({"name": n, "language": m.get("language", "en"),
                         "has_transcript": bool(m.get("ref_text"))})
     return {"profiles": names, "details": details}
 
 @app.get("/profiles/{name}/audio")
-async def profile_audio(name: str):
+async def profile_audio(request: Request, name: str):
     """The saved voice sample, so the page can play it before using the profile."""
-    name = _safe_profile(name)
-    p = PROFILE_DIR / f"{name}.wav"
-    if not p.exists():
-        raise HTTPException(404, f"Profile '{name}' not found")
-    return FileResponse(str(p), media_type="audio/wav", headers={"Cache-Control": "no-cache"})
+    wav, _, _ = _profile_paths(request, name)
+    return FileResponse(str(wav), media_type="audio/wav", headers={"Cache-Control": "private, no-store"})
 
 @app.delete("/profiles/{name}")
-async def delete_profile(name: str):
-    name = _safe_profile(name)
-    for ext in (".wav", ".json"):
-        p = PROFILE_DIR / f"{name}{ext}"
+async def delete_profile(request: Request, name: str):
+    wav, pjson, _ = _profile_paths(request, name, must_exist=False)
+    for p in (wav, pjson):
         if p.exists(): p.unlink()
-    return {"status": "deleted", "profile": name}
+    return {"status": "deleted", "profile": wav.stem}
 
 
 if __name__ == "__main__":
